@@ -200,7 +200,18 @@ if run_btn:
                         
                         st.markdown("---")
                         st.markdown("### 🔍 Gehri Jaanch aur Detailing (Deep-Dive Analysis in Hindi):")
-                        st.markdown(f"P/E Ratio **{pe_str}** hai, ROE **{roe_str}** hai, aur Debt-to-Equity **{de_str}** hai.")
+                        
+                        st.markdown("#### 1. Company Kitni Sasti ya Mehngi Hai? (Valuation)")
+                        st.markdown(f"P/E Ratio **{pe_str}** hai. Yeh batata hai ki aap company ko kis daam par kharid rahe hain. 25-30 ke andar ka P/E ratio ek accha nivesh maana jata hai.")
+                        
+                        st.markdown("#### 2. Management Ka Performance (ROE)")
+                        st.markdown(f"Return on Equity (ROE) **{roe_str}** hai. 15% ya usse zyada ka ROE yeh sabit karta hai ki company apne business se shandaar munafa nikal kar de rahi hai.")
+                        
+                        st.markdown("#### 3. Suraksha aur Karza (Financial Stability)")
+                        st.markdown(f"Debt-to-Equity ratio **{de_str}** hai. Kam karza ya debt-free hona kisi bhi company ko economic crisis mein surakshit rakhta hai.")
+                        
+                        st.markdown("#### 4. 52-Week Range & Dividends (Context)")
+                        st.markdown(f"Pichle ek saal mein stock ka high **₹{high_52}** aur low **₹{low_52}** raha hai, aur Dividend Yield **{div_str}** hai.")
 
             except Exception as e:
                 st.error(f"Koyi error aa gaya: {e}")
