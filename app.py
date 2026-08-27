@@ -2,6 +2,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
+import requests
 
 st.set_page_config(page_title="Advanced Stock Screener Pro", page_icon="📈", layout="wide")
 
@@ -20,7 +21,7 @@ with col_in3:
     st.markdown("<br>", unsafe_allow_html=True)
     run_btn = st.button("Deep Analyze Karein", type="primary")
 
-# Automatically convert any input to uppercase to prevent errors
+# Automatically convert any input to uppercase
 symbol = raw_symbol.upper().strip()
 
 if run_btn:
@@ -32,12 +33,16 @@ if run_btn:
         
         with st.spinner("Market data aur indicators calculate ho rahe hain..."):
             try:
-                stock = yf.Ticker(ticker_symbol)
+                # Custom session to bypass Yahoo Finance fetching blocks
+                session = requests.Session()
+                session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+                
+                stock = yf.Ticker(ticker_symbol, session=session)
                 df = stock.history(period="1y")
                 info = stock.info
                 
-                if df.empty or len(df) < 10:
-                    st.error(f"'{symbol}' ke liye data nahi mila. Kripya sahi symbol check karein.")
+                if df.empty or len(df) < 5:
+                    st.error(f"'{symbol}' ke liye data nahi mila. Kripya symbol check karein ya thodi der baad koshish karein.")
                 else:
                     # --- TECHNICALS & SWING INDICATORS ---
                     df['EMA_20'] = df['Close'].ewm(span=20, adjust=False).mean()
