@@ -8,12 +8,19 @@ st.set_page_config(page_title="Complete Stock Analyzer Pro", page_icon="📈", l
 st.title("🚀 Complete Stock Analyzer Pro (Investor + Trader Edition)")
 st.markdown("Ek aisi advanced app jo **Fundamental Analysis** (Investors ke liye) aur **Technical Analysis** (Traders ke liye) dono ko combine karke complete verdict deti hai.")
 
-# Sidebar inputs
-st.sidebar.header("Configuration")
-symbol = st.sidebar.text_input("Stock Symbol (e.g., RELIANCE, TCS, INFY)", "RELIANCE").upper().strip()
-exchange = st.sidebar.selectbox("Exchange", ["NSE (.NS)", "BSE (.BO)"])
+st.markdown("---")
 
-if st.sidebar.button("Run Full Analysis", type="primary"):
+# Main Page Inputs (No Sidebar)
+col_in1, col_in2, col_in3 = st.columns([2, 2, 1])
+with col_in1:
+    symbol = st.text_input("Stock Symbol (e.g., RELIANCE, TCS, INFY)", "RELIANCE").upper().strip()
+with col_in2:
+    exchange = st.selectbox("Exchange", ["NSE (.NS)", "BSE (.BO)"])
+with col_in3:
+    st.markdown("<br>", unsafe_allow_html=True)
+    run_btn = st.button("Run Full Analysis", type="primary")
+
+if run_btn:
     suffix = ".NS" if "NSE" in exchange else ".BO"
     ticker_symbol = symbol + suffix
     
@@ -163,4 +170,4 @@ if st.sidebar.button("Run Full Analysis", type="primary"):
         except Exception as e:
             st.error(f"Error process karne mein: {e}")
 else:
-    st.info("Sidebar mein stock ka symbol daal kar **'Run Full Analysis'** button par click karein.")
+    st.info("Upar stock symbol daal kar aur exchange select karke **'Run Full Analysis'** button par click karein.")
