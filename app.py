@@ -11,18 +11,28 @@ st.markdown("Yeh app **Swing Trading** (Short-term momentum) aur **Long-Term Inv
 
 st.markdown("---")
 
+# Session state initialization to handle automatic capital letters
+if 'stock_input' not in st.session_state:
+    st.session_state['stock_input'] = ""
+
+def convert_to_caps():
+    st.session_state['stock_input'] = st.session_state['stock_input'].upper().strip()
+
 # Main Page Inputs
 col_in1, col_in2, col_in3 = st.columns([2, 2, 1])
 with col_in1:
-    raw_symbol = st.text_input("Stock Ka Naam Daalein (jaise BEL, RELIANCE, TCS)", "")
+    raw_symbol = st.text_input(
+        "Stock Ka Naam Daalein (jaise BEL, RELIANCE, TCS)", 
+        key='stock_input', 
+        on_change=convert_to_caps
+    )
 with col_in2:
     exchange = st.selectbox("Exchange Chunein", ["NSE (.NS)", "BSE (.BO)"])
 with col_in3:
     st.markdown("<br>", unsafe_allow_html=True)
     run_btn = st.button("Deep Analyze Karein", type="primary")
 
-# Force uppercase conversion for safety
-symbol = raw_symbol.upper().strip()
+symbol = st.session_state['stock_input']
 
 if run_btn:
     if not symbol:
@@ -37,15 +47,13 @@ if run_btn:
                 session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
                 
                 stock = yf.Ticker(ticker_symbol, session=session)
-                
-                # Fetching history safely using download method to avoid multi-index or empty DF bugs
-                df = yf.download(ticker_symbol, period="1y", progress=False, session=session)
+                df = stock.history(period="1y")
                 info = stock.info
                 
-                if df.empty or len(df) < 5:
-                    st.error(f"'{symbol}' ke liye price history nahi mili. Kripya symbol check karein.")
+                if df.empty or len(df) < 2:
+                    st.error(f"'{symbol}' ke liye price data nahi mila. Kripya symbol check karein.")
                 else:
-                    # Flatten columns if multi-index is returned by yfinance
+                    # Fix multi-index columns if any
                     if isinstance(df.columns, pd.MultiIndex):
                         df.columns = df.columns.get_level_values(0)
                         
@@ -66,16 +74,30 @@ if run_btn:
                     df['MACD'] = exp1 - exp2
                     df['Signal_Line'] = df['MACD'].ewm(span=9, adjust=False).mean()
                     
-                    # Safe Extraction of Prices
-                    latest_close = float(df['Close'].iloc[-1].item() if hasattr(df['Close'].iloc[-1], 'item') else df['Close'].iloc[-1])
-                    prev_close = float(df['Close'].iloc[-2].item() if hasattr(df['Close'].iloc[-2], 'item') else df['Close'].iloc[-2]) if len(df) > 1 else latest_close
+                    # Safe Extraction of Latest Price directly from Series/Scalar
+                    close_series = df['Close'].dropna()
+                    if len(close_series) > 0:
+                        latest_close = float(close_series.iloc[-1])
+                        prev_close = float(close_series.iloc[-2]) if len(close_series) > 1 else latest_close
+                    else:
+                        latest_close, prev_close = 0.0, 0.0
+                        
                     price_change = ((latest_close - prev_close) / prev_close) * 100 if prev_close else 0.0
                     
-                    latest_rsi = float(df['RSI'].iloc[-1].item() if hasattr(df['RSI'].iloc[-1], 'item') else df['RSI'].iloc[-1]) if not pd.isna(df['RSI'].iloc[-1]) else 50.0
-                    latest_ema20 = float(df['EMA_20'].iloc[-1].item() if hasattr(df['EMA_20'].iloc[-1], 'item') else df['EMA_20'].iloc[-1]) if not pd.isna(df['EMA_20'].iloc[-1]) else latest_close
-                    latest_ema50 = float(df['EMA_50'].iloc[-1].item() if hasattr(df['EMA_50'].iloc[-1], 'item') else df['EMA_50'].iloc[-1]) if not pd.isna(df['EMA_50'].iloc[-1]) else latest_close
-                    latest_macd = float(df['MACD'].iloc[-1].item() if hasattr(df['MACD'].iloc[-1], 'item') else df['MACD'].iloc[-1]) if not pd.isna(df['MACD'].iloc[-1]) else 0.0
-                    latest_signal = float(df['Signal_Line'].iloc[-1].item() if hasattr(df['Signal_Line'].iloc[-1], 'item') else df['Signal_Line'].iloc[-1]) if not pd.isna(df['Signal_Line'].iloc[-1]) else 0.0
+                    rsi_series = df['RSI'].dropna()
+                    latest_rsi = float(rsi_series.iloc[-1]) if len(rsi_series) > 0 else 50.0
+                    
+                    ema20_series = df['EMA_20'].dropna()
+                    latest_ema20 = float(ema20_series.iloc[-1]) if len(ema20_series) > 0 else latest_close
+                    
+                    ema50_series = df['EMA_50'].dropna()
+                    latest_ema50 = float(ema50_series.iloc[-1]) if len(ema50_series) > 0 else latest_close
+                    
+                    macd_series = df['MACD'].dropna()
+                    latest_macd = float(macd_series.iloc[-1]) if len(macd_series) > 0 else 0.0
+                    
+                    sig_series = df['Signal_Line'].dropna()
+                    latest_signal = float(sig_series.iloc[-1]) if len(sig_series) > 0 else 0.0
                     
                     # --- FUNDAMENTALS WITH SAFE HANDLING ---
                     market_cap = info.get('marketCap', None)
