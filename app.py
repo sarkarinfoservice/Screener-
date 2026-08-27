@@ -111,7 +111,7 @@ if run_btn:
                     tab1, tab2, tab3 = st.tabs(["🎯 Complete Saransh & Verdict (Hindi)", "🚀 Powerful Swing Trading Guide", "💼 Expert Long-Term Investment Analysis"])
                     
                     with tab1:
-                        st.subheader("🤖 Smart Combined Verdict (Hindi)")
+                        st.subheader("🤖 Smart Combined Verdict & Actionable Advice (Hindi)")
                         
                         col_a, col_b = st.columns(2)
                         with col_a:
@@ -131,7 +131,21 @@ if run_btn:
                                 st.warning("**Overall Nishkarsh: MODERATE / MIXED STHITI** ⚖️\nKuch cheezein acchi hain par kuch par dhyan dena zaroori hai.")
                             else:
                                 st.error("**Overall Nishkarsh: WEAK / SAWDHANI ZAROORI** ⚠️\nFilhal stock mein kamzori ya risk zyada lag raha hai.")
-                                
+                        
+                        st.markdown("---")
+                        st.markdown("### 🚦 Clear Buying & Holding Verdict (Kya Karein?):")
+                        
+                        # Verdict Logic Formulation
+                        if score >= 3:
+                            st.markdown("🟢 **Naya Kharidein (Fresh Buy):** Haan, aap ismein naya nivesh karne ka soch sakte hain kyunki momentum aur fundamentals dono acche hain.")
+                            st.markdown("🔒 **Pehle se hai toh? (Existing Position):** **HOLD (Apne paas rakhein)**. Becha na karein, lamba profit ban sakta hai.")
+                        elif score == 2:
+                            st.markdown("🟡 **Naya Kharidein (Fresh Buy):** Thoda intezaar karein ya sirf chote hisse mein (SIP ki tarah) entry lein.")
+                            st.markdown("🔒 **Pehle se hai toh? (Existing Position):** **HOLD (Bane rahein)**, par naya paisa lagane se pehle thoda aur research kar lein.")
+                        else:
+                            st.markdown("🔴 **Naya Kharidein (Fresh Buy):** Filhal naya stock kharidne se bachein (Avoid).")
+                            st.markdown("🚪 **Pehle se hai toh? (Existing Position):** **SELL / EXIT (Nikal jayein)** ya loss cut karne ka sochein kyunki trend kamzor hai.")
+
                         st.markdown("---")
                         st.markdown("### 📌 Quick Summary Table:")
                         summary_data = {
