@@ -161,27 +161,23 @@ if run_btn:
                         st.markdown("Lambe samay ke nivesh (5-10 saal) ke liye business ki asli taqat yahan check karein:")
                         
                         # --- INDICATOR LOGIC & COLOR MAPPING ---
-                        # P/E Logic: < 25 (Green), 25-40 (Yellow), > 40 or N/A (Red)
                         if pe_val is not None:
-                            pe_ind = "🟢 (Behtareen / Sasta)" if pe_val < 25 else ("🟡 (Theek-Thak / Moderate)" if pe_val <= 40 else "🔴 (Mehanga / Overvalued)")
+                            pe_ind = "🟢 (Sasta / Behtareen)" if pe_val < 25 else ("🟡 (Moderate)" if pe_val <= 40 else "🔴 (Mehanga)")
                         else:
-                            pe_ind = "⚪ (Data Uplabdh Nahi)"
+                            pe_ind = "⚪ (N/A)"
 
-                        # ROE Logic: > 15% (Green), 10-15% (Yellow), < 10% (Red)
                         if roe_val is not None:
-                            roe_ind = "🟢 (Shandaar Profitability)" if roe_val > 15 else ("🟡 (Moderate Return)" if roe_val >= 10 else "🔴 (Kamzor Return)")
+                            roe_ind = "🟢 (Shandaar)" if roe_val > 15 else ("🟡 (Average)" if roe_val >= 10 else "🔴 (Kamzor)")
                         else:
-                            roe_ind = "⚪ (Data Uplabdh Nahi)"
+                            roe_ind = "⚪ (N/A)"
 
-                        # Debt Logic: < 0.5 (Green), 0.5-1.5 (Yellow), > 1.5 (Red)
                         if de_val is not None:
-                            de_ind = "🟢 (Surakshit / Low Debt)" if de_val < 0.5 else ("🟡 (Moderate Debt)" if de_val <= 1.5 else "🔴 (Bari Karza / Risky)")
+                            de_ind = "🟢 (Low Debt)" if de_val < 0.5 else ("🟡 (Moderate)" if de_val <= 1.5 else "🔴 (High Risk)")
                         else:
                             de_ind = "🟢 (Low Debt / N/A)"
 
-                        # Dividend Logic: > 2% (Green), > 0% (Yellow), 0% (Red/Neutral)
                         if div_val is not None:
-                            div_ind = "🟢 (Accha Dividend)" if div_val > 2 else ("🟡 (Kam Dividend)" if div_val > 0 else "⚪ (Dividend Nahi Deti)")
+                            div_ind = "🟢 (Accha)" if div_val > 2 else ("🟡 (Kam)" if div_val > 0 else "⚪ (Nahi Deti)")
                         else:
                             div_ind = "⚪ (N/A)"
 
@@ -192,10 +188,19 @@ if run_btn:
                         f4.metric("Dividend Yield", div_str, div_ind)
                         
                         st.markdown("---")
-                        st.markdown("### 🔍 Gehri Jaanch (Indicator Meaning):")
-                        st.markdown("- 🟢 **Green (Hara):** Yeh darshata hai ki yeh parameter ekdum safe aur acchi sthiti mein hai.")
-                        st.markdown("- 🟡 **Yellow (Peela):** Yeh average ya moderate sthiti hai, ispar thoda dhyan dena chahiye.")
-                        st.markdown("- 🔴 **Red (Laal):** Yeh risk ya kamzori ka sanket hai, ismein savdhani rakhni zaroori hai.")
+                        st.markdown("### 🔍 Gehri Jaanch aur Detailing (Deep-Dive Analysis in Hindi):")
+                        
+                        st.markdown("#### 1. Company Kitni Sasti ya Mehngi Hai? (Valuation)")
+                        st.markdown(f"P/E Ratio **{pe_str}** hai. Yeh batata hai ki aap company ko kis daam par kharid rahe hain. 25-30 ke andar ka P/E ratio ek accha nivesh maana jata hai.")
+                        
+                        st.markdown("#### 2. Management Ka Performance (ROE)")
+                        st.markdown(f"Return on Equity (ROE) **{roe_str}** hai. 15% ya usse zyada ka ROE yeh sabit karta hai ki company apne business se shandaar munafa nikal kar de rahi hai.")
+                        
+                        st.markdown("#### 3. Suraksha aur Karza (Financial Stability)")
+                        st.markdown(f"Debt-to-Equity ratio **{de_str}** hai. Kam karza ya debt-free hona kisi bhi company ko economic crisis mein surakshit rakhta hai.")
+                        
+                        st.markdown("#### 4. 52-Week Range & Dividends (Context)")
+                        st.markdown(f"Pichle ek saal mein stock ka high **₹{high_52}** aur low **₹{low_52}** raha hai, aur Dividend Yield **{div_str}** hai.")
 
             except Exception as e:
                 st.error(f"Koyi error aa gaya: {e}")
