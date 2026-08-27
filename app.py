@@ -107,6 +107,20 @@ if run_btn:
                     high_52 = info.get('fiftyTwoWeekHigh', 'N/A')
                     low_52 = info.get('fiftyTwoWeekLow', 'N/A')
                     
+                    # --- TABLE INDICATOR LOGIC ---
+                    pe_status = f"{pe_str} 🟢" if pe_val and pe_val < 25 else (f"{pe_str} 🟡" if pe_val and pe_val <= 40 else f"{pe_str} 🔴") if pe_val else "N/A ⚪"
+                    roe_status = f"{roe_str} 🟢" if roe_val and roe_val > 15 else (f"{roe_str} 🟡" if roe_val and roe_val >= 10 else f"{roe_str} 🔴") if roe_val else "N/A ⚪"
+                    de_status = f"{de_str} 🟢" if de_val and de_val < 0.5 else (f"{de_str} 🟡" if de_val and de_val <= 1.5 else f"{de_str} 🔴") if de_val else "N/A 🟢"
+                    
+                    if 40 <= latest_rsi <= 60:
+                        rsi_status = f"{latest_rsi:.2f} 🟢 (Balanced)"
+                    elif latest_rsi < 35:
+                        rsi_status = f"{latest_rsi:.2f} 🟢 (Oversold)"
+                    else:
+                        rsi_status = f"{latest_rsi:.2f} 🔴 (Overbought/High)"
+
+                    macd_status = "Bullish 🟢" if latest_macd > latest_signal else "Bearish 🔴"
+
                     # --- TABS ---
                     tab1, tab2, tab3 = st.tabs(["🎯 Complete Saransh & Verdict (Hindi)", "🚀 Powerful Swing Trading Guide", "💼 Expert Long-Term Investment Analysis"])
                     
@@ -135,22 +149,21 @@ if run_btn:
                         st.markdown("---")
                         st.markdown("### 🚦 Clear Buying & Holding Verdict (Kya Karein?):")
                         
-                        # Verdict Logic Formulation
                         if score >= 3:
-                            st.markdown("🟢 **Naya Kharidein (Fresh Buy):** Haan, aap ismein naya nivesh karne ka soch sakte hain kyunki momentum aur fundamentals dono acche hain.")
-                            st.markdown("🔒 **Pehle se hai toh? (Existing Position):** **HOLD (Apne paas rakhein)**. Becha na karein, lamba profit ban sakta hai.")
+                            st.markdown("🟢 **Naya Kharidein (Fresh Buy):** Haan, aap ismein naya nivesh karne ka soch sakte hain.")
+                            st.markdown("🔒 **Pehle se hai toh? (Existing Position):** **HOLD (Apne paas rakhein)**.")
                         elif score == 2:
-                            st.markdown("🟡 **Naya Kharidein (Fresh Buy):** Thoda intezaar karein ya sirf chote hisse mein (SIP ki tarah) entry lein.")
-                            st.markdown("🔒 **Pehle se hai toh? (Existing Position):** **HOLD (Bane rahein)**, par naya paisa lagane se pehle thoda aur research kar lein.")
+                            st.markdown("🟡 **Naya Kharidein (Fresh Buy):** Thoda intezaar karein ya chote hisse mein entry lein.")
+                            st.markdown("🔒 **Pehle se hai toh? (Existing Position):** **HOLD (Bane rahein)**.")
                         else:
-                            st.markdown("🔴 **Naya Kharidein (Fresh Buy):** Filhal naya stock kharidne se bachein (Avoid).")
-                            st.markdown("🚪 **Pehle se hai toh? (Existing Position):** **SELL / EXIT (Nikal jayein)** ya loss cut karne ka sochein kyunki trend kamzor hai.")
+                            st.markdown("🔴 **Naya Kharidein (Fresh Buy):** Filhal naya stock kharidne se bachein.")
+                            st.markdown("🚪 **Pehle se hai toh? (Existing Position):** **SELL / EXIT (Nikal jayein)**.")
 
                         st.markdown("---")
-                        st.markdown("### 📌 Quick Summary Table:")
+                        st.markdown("### 📌 Quick Summary Table (With Indicators):")
                         summary_data = {
                             "Parameter": ["Valuation (P/E)", "Profitability (ROE)", "Karza (Debt/Equity)", "Momentum (RSI)", "Trend (MACD)"],
-                            "Value/Status": [pe_str, roe_str, de_str, f"{latest_rsi:.2f}", "Bullish" if latest_macd > latest_signal else "Bearish"],
+                            "Value/Status": [pe_status, roe_status, de_status, rsi_status, macd_status],
                             "Ideal Target": ["< 30", "> 15%", "< 0.5", "40 - 60", "Positive Crossover"]
                         }
                         st.table(pd.DataFrame(summary_data))
@@ -174,26 +187,10 @@ if run_btn:
                         st.subheader("💼 Expert Long-Term Investment Analysis")
                         st.markdown("Lambe samay ke nivesh (5-10 saal) ke liye business ki asli taqat yahan check karein:")
                         
-                        # --- INDICATOR LOGIC & COLOR MAPPING ---
-                        if pe_val is not None:
-                            pe_ind = "🟢 (Sasta / Behtareen)" if pe_val < 25 else ("🟡 (Moderate)" if pe_val <= 40 else "🔴 (Mehanga)")
-                        else:
-                            pe_ind = "⚪ (N/A)"
-
-                        if roe_val is not None:
-                            roe_ind = "🟢 (Shandaar)" if roe_val > 15 else ("🟡 (Average)" if roe_val >= 10 else "🔴 (Kamzor)")
-                        else:
-                            roe_ind = "⚪ (N/A)"
-
-                        if de_val is not None:
-                            de_ind = "🟢 (Low Debt)" if de_val < 0.5 else ("🟡 (Moderate)" if de_val <= 1.5 else "🔴 (High Risk)")
-                        else:
-                            de_ind = "🟢 (Low Debt / N/A)"
-
-                        if div_val is not None:
-                            div_ind = "🟢 (Accha)" if div_val > 2 else ("🟡 (Kam)" if div_val > 0 else "⚪ (Nahi Deti)")
-                        else:
-                            div_ind = "⚪ (N/A)"
+                        pe_ind = "🟢 (Sasta / Behtareen)" if pe_val and pe_val < 25 else ("🟡 (Moderate)" if pe_val and pe_val <= 40 else "🔴 (Mehanga)") if pe_val else "⚪ (N/A)"
+                        roe_ind = "🟢 (Shandaar)" if roe_val and roe_val > 15 else ("🟡 (Average)" if roe_val and roe_val >= 10 else "🔴 (Kamzor)") if roe_val else "⚪ (N/A)"
+                        de_ind = "🟢 (Low Debt)" if de_val and de_val < 0.5 else ("🟡 (Moderate)" if de_val and de_val <= 1.5 else "🔴 (High Risk)") if de_val else "🟢 (Low Debt / N/A)"
+                        div_ind = "🟢 (Accha)" if div_val and div_val > 2 else ("🟡 (Kam)" if div_val and div_val > 0 else "⚪ (Nahi Deti)") if div_val else "⚪ (N/A)"
 
                         f1, f2, f3, f4 = st.columns(4)
                         f1.metric("P/E Ratio", pe_str, pe_ind)
@@ -203,18 +200,7 @@ if run_btn:
                         
                         st.markdown("---")
                         st.markdown("### 🔍 Gehri Jaanch aur Detailing (Deep-Dive Analysis in Hindi):")
-                        
-                        st.markdown("#### 1. Company Kitni Sasti ya Mehngi Hai? (Valuation)")
-                        st.markdown(f"P/E Ratio **{pe_str}** hai. Yeh batata hai ki aap company ko kis daam par kharid rahe hain. 25-30 ke andar ka P/E ratio ek accha nivesh maana jata hai.")
-                        
-                        st.markdown("#### 2. Management Ka Performance (ROE)")
-                        st.markdown(f"Return on Equity (ROE) **{roe_str}** hai. 15% ya usse zyada ka ROE yeh sabit karta hai ki company apne business se shandaar munafa nikal kar de rahi hai.")
-                        
-                        st.markdown("#### 3. Suraksha aur Karza (Financial Stability)")
-                        st.markdown(f"Debt-to-Equity ratio **{de_str}** hai. Kam karza ya debt-free hona kisi bhi company ko economic crisis mein surakshit rakhta hai.")
-                        
-                        st.markdown("#### 4. 52-Week Range & Dividends (Context)")
-                        st.markdown(f"Pichle ek saal mein stock ka high **₹{high_52}** aur low **₹{low_52}** raha hai, aur Dividend Yield **{div_str}** hai.")
+                        st.markdown(f"P/E Ratio **{pe_str}** hai, ROE **{roe_str}** hai, aur Debt-to-Equity **{de_str}** hai.")
 
             except Exception as e:
                 st.error(f"Koyi error aa gaya: {e}")
