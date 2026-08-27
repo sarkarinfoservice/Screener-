@@ -6,14 +6,14 @@ import numpy as np
 st.set_page_config(page_title="Investment & Swing Analyzer", page_icon="📈", layout="wide")
 
 st.title("📈 Swing Trading & Long-Term Investment Screener")
-st.markdown("Ek aisi app jo **Long-Term Investing** (Fundamentals & Financial Health) aur **Swing Trading** (Momentum & Technicals) dono ke liye stock ko analyze karti hai.")
+st.markdown("Yeh app **Long-Term Investing** (Fundamentals) aur **Swing Trading** (Technical Momentum) ke liye stock analyze karti hai.")
 
 st.markdown("---")
 
 # Main Page Inputs
 col_in1, col_in2, col_in3 = st.columns([2, 2, 1])
 with col_in1:
-    symbol = st.text_input("Stock Symbol (e.g., RELIANCE, TCS, INFY)", "RELIANCE").upper().strip()
+    symbol = st.text_input("Stock Symbol (jaise RELIANCE, TCS, INFY)", "RELIANCE").upper().strip()
 with col_in2:
     exchange = st.selectbox("Exchange", ["NSE (.NS)", "BSE (.BO)"])
 with col_in3:
@@ -24,7 +24,7 @@ if run_btn:
     suffix = ".NS" if "NSE" in exchange else ".BO"
     ticker_symbol = symbol + suffix
     
-    with st.spinner("Analyzing fundamentals and technicals..."):
+    with st.spinner("Data analyze ho raha hai..."):
         try:
             stock = yf.Ticker(ticker_symbol)
             df = stock.history(period="1y")
@@ -62,29 +62,42 @@ if run_btn:
                 sector = info.get('sector', 'N/A')
                 industry = info.get('industry', 'N/A')
                 
-                # --- TABS LAYOUT ---
-                tab1, tab2, tab3, tab4 = st.tabs(["🎯 Summary & Verdict", "🚀 Swing Trading Setup", "💼 Long-Term Investment Check", "📈 Price Chart"])
+                # --- TABS LAYOUT (Price Chart Removed, Hindi Summary Added) ---
+                tab1, tab2, tab3 = st.tabs(["🎯 Summary & Verdict (Hindi)", "🚀 Swing Trading Setup", "💼 Long-Term Investment Check"])
                 
                 with tab1:
-                    st.subheader("🤖 Dual Strategy Verdict")
+                    st.subheader("🤖 Dual Strategy Summary & Verdict (Hindi mein)")
                     
                     col_a, col_b = st.columns(2)
                     with col_a:
-                        st.metric("Current Price", f"₹{latest_close:.2f}", f"{price_change:.2f}%")
+                        st.metric("Current Price (Vartaman Mulya)", f"₹{latest_close:.2f}", f"{price_change:.2f}%")
                         st.info(f"**Sector:** {sector} | **Industry:** {industry}")
                         st.metric("Market Cap", market_cap_str)
                     with col_b:
                         # Swing check
-                        swing_verdict = "Bullish / Momentum" if latest_close > latest_ema20 and latest_rsi < 65 else "Consolidating / Weak"
+                        if latest_close > latest_ema20 and latest_rsi < 65:
+                            swing_hindi = "🚀 Tezi / Momentum mein hai (Bullish)"
+                        else:
+                            swing_hindi = "⚠️ Sideways ya Kamzor trend (Consolidating/Weak)"
+                            
                         # Long-term check
-                        lt_verdict = "Strong Fundamentals" if (pe_ratio != 'N/A' and pe_ratio < 35 and roe != 'N/A' and roe > 0.12) else "Need Caution"
+                        if pe_ratio != 'N/A' and pe_ratio < 35 and roe != 'N/A' and roe > 0.12:
+                            lt_hindi = "✅ Majboot Fundamentals (Strong Investment Potential)"
+                        else:
+                            lt_hindi = "⚠️ Sawdhani rakhein / Mixed metrics (Need Caution)"
                         
-                        st.success(f"**Swing Setup Outlook:** {swing_verdict}")
-                        st.info(f"**Long-Term Investment Outlook:** {lt_verdict}")
+                        st.success(f"**Swing Trading Outlook:**\n{swing_hindi}")
+                        st.info(f"**Long-Term Investment Outlook:**\n{lt_hindi}")
+                    
+                    st.markdown("---")
+                    st.markdown("### 📌 Quick Insights:")
+                    st.markdown(f"- **P/E Ratio:** {pe_ratio} (Company sasti ya mehngi hai yeh isse pata chalta hai)")
+                    st.markdown(f"- **Return on Equity (ROE):** {roe_str} (Management paise ka kitna accha use kar rahi hai)")
+                    st.markdown(f"- **RSI (14):** {latest_rsi:.2f} (Overbought ya Oversold sthiti ki jankari)")
 
                 with tab2:
                     st.subheader("🚀 Swing Trading Analysis (Short to Medium-Term)")
-                    st.markdown("Yeh section un logon ke liye hai jo kuch hafton ya mahino ke momentum ke liye entry lena chahte hain.")
+                    st.markdown("Yeh section unke liye hai jo kuch hafton ya mahino ke momentum ke liye entry lena chahte hain.")
                     
                     s1, s2, s3 = st.columns(3)
                     s1.metric("RSI (14)", f"{latest_rsi:.2f}", "Ideal Buy zone: 40-55")
@@ -98,38 +111,34 @@ if run_btn:
                         st.markdown("❌ **Trend Status:** Price 20 EMA ke niche hai (Weak momentum).")
                         
                     if 40 <= latest_rsi <= 60:
-                        st.markdown("✅ **RSI Status:** Healthy zone mein hai, breakout ki sambhavna hai.")
+                        st.markdown("✅ **RSI Status:** Healthy zone mein hai.")
                     elif latest_rsi < 40:
                         st.markdown("⚠️ **RSI Status:** Oversold zone ke paas hai, reversal ka wait karein.")
                     else:
-                        st.markdown("⚠️ **RSI Status:** Overbought ho sakta hai, pullback ka dhyan dein.")
+                        st.markdown("⚠️ **RSI Status:** Overbought ho sakta hai, savdhan rahein.")
 
                 with tab3:
                     st.subheader("💼 Long-Term Investment Analysis (Fundamental Health)")
-                    st.markdown("Yeh section un investors ke liye hai jo saalon tak paisa park karna chahte hain.")
+                    st.markdown("Yeh section un investors ke liye hai jo lambe samay tak paisa invest karna chahte hain.")
                     
                     f1, f2, f3, f4 = st.columns(4)
-                    f1.metric("P/E Ratio", str(pe_ratio), "Lower is usually better value")
+                    f1.metric("P/E Ratio", str(pe_ratio))
                     f2.metric("P/B Ratio", str(pb_ratio))
-                    f3.metric("Return on Equity (ROE)", roe_str, "Target > 12-15%")
+                    f3.metric("Return on Equity (ROE)", roe_str)
                     f4.metric("Debt to Equity", str(debt_to_equity))
                     
                     st.markdown("### Investment Quality Checks:")
                     if pe_ratio != 'N/A':
                         if pe_ratio < 30:
-                            st.markdown(f"✅ **Valuation:** P/E ratio ({pe_ratio}) reasonable range mein lag raha hai.")
+                            st.markdown(f"✅ **Valuation:** P/E ratio ({pe_ratio}) reasonable range mein hai.")
                         else:
-                            st.markdown(f"⚠️ **Valvaluation:** P/E ratio ({pe_ratio}) kaafi high/expensive hai.")
+                            st.markdown(f"⚠️ **Valuation:** P/E ratio ({pe_ratio}) high/expensive hai.")
                     
                     if roe != 'N/A':
                         if roe > 0.15:
-                            st.markdown(f"✅ **Capital Efficiency:** Strong ROE ({roe_str}) indicate karta hai ki management capital acing use kar rahi hai.")
+                            st.markdown(f"✅ **Capital Efficiency:** Strong ROE ({roe_str}) hai.")
                         else:
-                            st.markdown(f"⚠️ **Capital Efficiency:** ROE ({roe_str}) moderate ya low side par hai.")
-
-                with tab4:
-                    st.markdown("### Price Action & Key EMAs Chart")
-                    st.line_chart(df[['Close', 'EMA_20', 'EMA_50']])
+                            st.markdown(f"⚠️ **Capital Efficiency:** ROE ({roe_str}) moderate ya low hai.")
                     
         except Exception as e:
             st.error(f"Error process karne mein: {e}")
