@@ -1,1 +1,5 @@
-# Screener-
+# Screener
+streamlit
+yfinance
+pandas
+numpy
