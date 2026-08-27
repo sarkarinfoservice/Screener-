@@ -10,15 +10,18 @@ st.markdown("Yeh app **Swing Trading** (Short-term momentum) aur **Long-Term Inv
 
 st.markdown("---")
 
-# Main Page Inputs (Default value blank kar di gayi hai)
+# Main Page Inputs (Blank default)
 col_in1, col_in2, col_in3 = st.columns([2, 2, 1])
 with col_in1:
-    symbol = st.text_input("Stock Ka Naam Daalein (jaise RELIANCE, TCS, INFY)", "").upper().strip()
+    raw_symbol = st.text_input("Stock Ka Naam Daalein (jaise RELIANCE, TCS, INFY)", "")
 with col_in2:
     exchange = st.selectbox("Exchange Chunein", ["NSE (.NS)", "BSE (.BO)"])
 with col_in3:
     st.markdown("<br>", unsafe_allow_html=True)
     run_btn = st.button("Deep Analyze Karein", type="primary")
+
+# Automatically convert any input to uppercase to prevent errors
+symbol = raw_symbol.upper().strip()
 
 if run_btn:
     if not symbol:
@@ -33,8 +36,8 @@ if run_btn:
                 df = stock.history(period="1y")
                 info = stock.info
                 
-                if df.empty or len(df) < 30:
-                    st.error("Galat symbol ya data uplabdh nahi hai. Kripya sahi naam daalein.")
+                if df.empty or len(df) < 10:
+                    st.error(f"'{symbol}' ke liye data nahi mila. Kripya sahi symbol check karein.")
                 else:
                     # --- TECHNICALS & SWING INDICATORS ---
                     df['EMA_20'] = df['Close'].ewm(span=20, adjust=False).mean()
@@ -53,7 +56,7 @@ if run_btn:
                     df['MACD'] = exp1 - exp2
                     df['Signal_Line'] = df['MACD'].ewm(span=9, adjust=False).mean()
                     
-                    # Safe Extraction to avoid nan
+                    # Safe Extraction
                     latest_close = float(df['Close'].iloc[-1]) if not pd.isna(df['Close'].iloc[-1]) else 0.0
                     prev_close = float(df['Close'].iloc[-2]) if len(df) > 1 and not pd.isna(df['Close'].iloc[-2]) else latest_close
                     price_change = ((latest_close - prev_close) / prev_close) * 100 if prev_close else 0.0
