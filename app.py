@@ -53,18 +53,23 @@ if run_btn:
                 # --- FUNDAMENTALS ---
                 market_cap = info.get('marketCap', 'N/A')
                 market_cap_str = f"₹{market_cap / 10000000:.2f} Crore" if market_cap != 'N/A' else 'N/A'
+                pe_ratio = info.get('trailingPB', info.get('trailingPE', 'N/A')) # Fallback safe
                 pe_ratio = info.get('trailingPE', 'N/A')
                 roe = info.get('returnOnEquity', 'N/A')
                 roe_str = f"{roe * 100:.2f}%" if roe and roe != 'N/A' else 'N/A'
+                
+                debt_to_equity = info.get('debtToEquity', 'N/A')
+                
                 dividend_yield = info.get('dividendYield', 0)
-                div_str = f"{dividend_yield * 100:.2f}%" if dividend_yield and dividend_yield != 'N/A' else 'N/A'
+                div_str = f"{dividend_yield * 100:.2f}%" if dividend_yield and dividend_yield != 'N/A' else '0%'
+                
                 sector = info.get('sector', 'N/A')
                 industry = info.get('industry', 'N/A')
                 high_52 = info.get('fiftyTwoWeekHigh', 'N/A')
                 low_52 = info.get('fiftyTwoWeekLow', 'N/A')
                 
                 # --- TABS ---
-                tab1, tab2, tab3 = st.tabs(["🎯 Saransh & Final Verdict (Hindi)", "🚀 Swing Trading (Thoda Short-Term)", "💼 Long-Term Investment (Lambe Samay Ke Liye)"])
+                tab1, tab2, tab3 = st.tabs(["🎯 Saransh & Final Verdict (Hindi)", "🚀 Swing Trading (Thoda Short-Term)", "💼 Advanced Long-Term Investment"])
                 
                 with tab1:
                     st.subheader("🤖 Simple Hindi Verdict")
@@ -75,7 +80,6 @@ if run_btn:
                         st.info(f"**Sector:** {sector}\n\n**Industry:** {industry}")
                         st.metric("Market Capitalization", market_cap_str)
                     with col_b:
-                        # Simple logic for summary
                         score = 0
                         if latest_close > latest_ema20: score += 1
                         if pe_ratio != 'N/A' and pe_ratio < 30: score += 1
@@ -88,14 +92,12 @@ if run_btn:
                             
                     st.markdown("---")
                     st.markdown("### 💡 Mukhya Baatein (Key Highlights):")
-                    st.markdown(f"- **Company ka Valuation (P/E):** `{pe_ratio}` (Agar yeh 30 se kam ho toh stock sasta ya theek daam par mana jata hai).")
-                    st.markdown(f"- **Company ka Return (ROE):** `{roe_str}` (Agar yeh 15% se upar ho toh company paisa banane mein expert hai).")
-                    st.markdown(f"- **Dividend (Laabh):** `{div_str}` (Company apne investors ko extra bonus/dividend kitna deti hai).")
+                    st.markdown(f"- **Company ka Valuation (P/E):** `{pe_ratio}` (30 se kam behtar mana jata hai).")
+                    st.markdown(f"- **Company ka Return (ROE):** `{roe_str}` (15% se zyada hona shandar hai).")
+                    st.markdown(f"- **Karza (Debt-to-Equity):** `{debt_to_equity}` (Kam karza matlab zyada suraksha).")
 
                 with tab2:
                     st.subheader("🚀 Swing Trading Guide (Kuch Hafton/Mahino ke liye)")
-                    st.markdown("Yeh unke liye hai jo chote samay mein tezi ka fayda uthana chahte hain.")
-                    
                     s1, s2, s3 = st.columns(3)
                     s1.metric("RSI Power", f"{latest_rsi:.2f}", "Sahi zone: 40 se 60")
                     s2.metric("20-Day Trend Line", f"₹{latest_ema20:.2f}")
@@ -103,29 +105,35 @@ if run_btn:
                     
                     st.markdown("### 📋 Kya Karna Chahiye?")
                     if latest_close > latest_ema20 and latest_rsi < 65:
-                        st.markdown("🟢 **Tezi ke sanket:** Stock apne short-term trend ke upar chal raha hai. Momentum accha hai.")
+                        st.markdown("🟢 **Tezi ke sanket:** Stock short-term trend ke upar hai.")
                     else:
-                        st.markdown("🔴 **Sustha/Kamzor sthiti:** Filhal stock mein tezi ki kami hai ya price niche chal raha hai.")
-                        
-                    if latest_rsi < 35:
-                        st.markdown("💡 **Tip:** RSI 35 se kam hone par stock 'Oversold' (bohot gira hua) mana jata hai, yahan se recovery aa sakti hai.")
-                    elif latest_rsi > 70:
-                        st.markdown("⚠️ **Tip:** RSI 70 se upar hone par stock 'Overbought' hota hai, yahan se girawat ka khatra hota hai.")
+                        st.markdown("🔴 **Sustha/Kamzor sthiti:** Filhal tezi ki kami hai.")
 
                 with tab3:
-                    st.subheader("💼 Long-Term Investment Guide (Saalon ke liye)")
-                    st.markdown("Yeh unke liye hai jo company mein hissedari lekar lambe samay tak chhodna chahte hain.")
+                    st.subheader("💼 Advanced Long-Term Investment Analysis")
+                    st.markdown("Lambe samay (5-10 saal) ke nivesh ke liye company ke yeh 4 sabse bade pillars check karein:")
                     
                     f1, f2, f3, f4 = st.columns(4)
-                    f1.metric("P/E Ratio", str(pe_ratio))
+                    f1.metric("P/E Ratio (Valuation)", str(pe_ratio))
                     f2.metric("ROE (Profitability)", roe_str)
-                    f3.metric("52-Week High", f"₹{high_52}" if high_52 != 'N/A' else 'N/A')
-                    f4.metric("52-Week Low", f"₹{low_52}" if low_52 != 'N/A' else 'N/A')
+                    f3.metric("Debt-to-Equity (Karza)", str(debt_to_equity))
+                    f4.metric("Dividend Yield", div_str)
                     
-                    st.markdown("### 📋 3 Golden Rules (Long-Term ke liye):")
-                    st.markdown("1. **Strong Business:** Kya yeh aisi company hai jiska product aap ya log roz use karte hain?")
-                    st.markdown(f"2. **Theek Daam (Valuation):** Iska P/E ratio `{pe_ratio}` hai. Bohot mehnge daam par kharidne se bachein.")
-                    st.markdown(f"3. **Accha Return:** Iska ROE `{roe_str}` hai, jo yeh batata hai ki company apne business se kitna shandar munafa nikal rahi hai.")
+                    st.markdown("---")
+                    st.markdown("### 🔍 Detail Analysis & Simple Rules:")
+                    
+                    # Detailed explanations in Hindi
+                    st.markdown("#### 1. Valuation & Pricing (P/E Ratio)")
+                    st.markdown(f"Aapka P/E ratio **{pe_ratio}** hai. Yeh batata hai ki aap company ko kitna mehanga kharid rahe hain. Agar yeh 25-30 ke andar ho toh stock 'Fair Value' par hai, lekin agar bahut high ho toh risk badh jata hai.")
+                    
+                    st.markdown("#### 2. Business Efficiency (ROE - Return on Equity)")
+                    st.markdown(f"Iska ROE **{roe_str}** hai. Yeh long-term investing ka sabse bada hathyar hai. 15% ya usse upar ka ROE yeh sabit karta hai ki management aapke invest kiye gaye har rupaye par accha munafa kama kar de rahi hai.")
+                    
+                    st.markdown("#### 3. Financial Safety (Debt-to-Equity / Karza)")
+                    st.markdown(f"Iska Debt-to-Equity ratio **{debt_to_equity}** hai. Aisi companies jinke paas kam ya na ke barabar karza hota hai (debt-free), wohi mandi ya buri sthiti mein sabse lambi race chalti hain.")
+                    
+                    st.markdown("#### 4. Extra Income (Dividend Yield)")
+                    st.markdown(f"Dividend Yield **{div_str}** hai. Yeh batata hai ki company apne munafey ka kitna hissa seedha aapke bank account mein bonus ya laabh ke roop mein bhejti hai.")
 
         except Exception as e:
             st.error(f"Koyi error aa gaya: {e}")
