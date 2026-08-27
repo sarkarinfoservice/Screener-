@@ -11,7 +11,7 @@ st.markdown("Yeh app **Swing Trading** (Short-term momentum) aur **Long-Term Inv
 
 st.markdown("---")
 
-# Session state initialization to handle automatic capital letters
+# Session state initialization for capital letters
 if 'stock_input' not in st.session_state:
     st.session_state['stock_input'] = ""
 
@@ -53,7 +53,6 @@ if run_btn:
                 if df.empty or len(df) < 2:
                     st.error(f"'{symbol}' ke liye price data nahi mila. Kripya symbol check karein.")
                 else:
-                    # Fix multi-index columns if any
                     if isinstance(df.columns, pd.MultiIndex):
                         df.columns = df.columns.get_level_values(0)
                         
@@ -61,66 +60,50 @@ if run_btn:
                     df['EMA_20'] = df['Close'].ewm(span=20, adjust=False).mean()
                     df['EMA_50'] = df['Close'].ewm(span=50, adjust=False).mean()
                     
-                    # RSI (14)
                     delta = df['Close'].diff()
                     gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
                     loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
                     rs = gain / loss
                     df['RSI'] = 100 - (100 / (1 + rs))
                     
-                    # MACD Calculation
                     exp1 = df['Close'].ewm(span=12, adjust=False).mean()
                     exp2 = df['Close'].ewm(span=26, adjust=False).mean()
                     df['MACD'] = exp1 - exp2
                     df['Signal_Line'] = df['MACD'].ewm(span=9, adjust=False).mean()
                     
-                    # Safe Extraction of Latest Price directly from Series/Scalar
                     close_series = df['Close'].dropna()
-                    if len(close_series) > 0:
-                        latest_close = float(close_series.iloc[-1])
-                        prev_close = float(close_series.iloc[-2]) if len(close_series) > 1 else latest_close
-                    else:
-                        latest_close, prev_close = 0.0, 0.0
-                        
+                    latest_close = float(close_series.iloc[-1]) if len(close_series) > 0 else 0.0
+                    prev_close = float(close_series.iloc[-2]) if len(close_series) > 1 else latest_close
                     price_change = ((latest_close - prev_close) / prev_close) * 100 if prev_close else 0.0
                     
-                    rsi_series = df['RSI'].dropna()
-                    latest_rsi = float(rsi_series.iloc[-1]) if len(rsi_series) > 0 else 50.0
+                    latest_rsi = float(df['RSI'].iloc[-1]) if not pd.isna(df['RSI'].iloc[-1]) else 50.0
+                    latest_ema20 = float(df['EMA_20'].iloc[-1]) if not pd.isna(df['EMA_20'].iloc[-1]) else latest_close
+                    latest_ema50 = float(df['EMA_50'].iloc[-1]) if not pd.isna(df['EMA_50'].iloc[-1]) else latest_close
+                    latest_macd = float(df['MACD'].iloc[-1]) if not pd.isna(df['MACD'].iloc[-1]) else 0.0
+                    latest_signal = float(df['Signal_Line'].iloc[-1]) if not pd.isna(df['Signal_Line'].iloc[-1]) else 0.0
                     
-                    ema20_series = df['EMA_20'].dropna()
-                    latest_ema20 = float(ema20_series.iloc[-1]) if len(ema20_series) > 0 else latest_close
-                    
-                    ema50_series = df['EMA_50'].dropna()
-                    latest_ema50 = float(ema50_series.iloc[-1]) if len(ema50_series) > 0 else latest_close
-                    
-                    macd_series = df['MACD'].dropna()
-                    latest_macd = float(macd_series.iloc[-1]) if len(macd_series) > 0 else 0.0
-                    
-                    sig_series = df['Signal_Line'].dropna()
-                    latest_signal = float(sig_series.iloc[-1]) if len(sig_series) > 0 else 0.0
-                    
-                    # --- FUNDAMENTALS WITH SAFE HANDLING ---
+                    # --- FUNDAMENTALS ---
                     market_cap = info.get('marketCap', None)
-                    if market_cap and not pd.isna(market_cap):
-                        market_cap_str = f"₹{market_cap / 10000000:.2f} Crore"
-                    else:
-                        market_cap_str = 'N/A'
+                    market_cap_str = f"₹{market_cap / 10000000:.2f} Crore" if market_cap and not pd.isna(market_cap) else 'N/A'
                         
                     pe_ratio = info.get('trailingPE', None)
-                    pe_str = f"{float(pe_ratio):.2f}" if pe_ratio and not pd.isna(pe_ratio) else 'N/A'
+                    pe_val = float(pe_ratio) if pe_ratio and not pd.isna(pe_ratio) else None
+                    pe_str = f"{pe_val:.2f}" if pe_val is not None else 'N/A'
                     
                     roe = info.get('returnOnEquity', None)
-                    roe_str = f"{float(roe) * 100:.2f}%" if roe and not pd.isna(roe) else 'N/A'
+                    roe_val = float(roe) * 100 if roe and not pd.isna(roe) else None
+                    roe_str = f"{roe_val:.2f}%" if roe_val is not None else 'N/A'
                     
                     debt_to_equity = info.get('debtToEquity', None)
-                    de_str = f"{float(debt_to_equity):.2f}" if debt_to_equity and not pd.isna(debt_to_equity) else 'N/A'
+                    de_val = float(debt_to_equity) if debt_to_equity and not pd.isna(debt_to_equity) else None
+                    de_str = f"{de_val:.2f}" if de_val is not None else 'N/A'
                     
                     dividend_yield = info.get('dividendYield', None)
-                    div_str = f"{float(dividend_yield) * 100:.2f}%" if dividend_yield and not pd.isna(dividend_yield) else '0%'
+                    div_val = float(dividend_yield) * 100 if dividend_yield and not pd.isna(dividend_yield) else None
+                    div_str = f"{div_val:.2f}%" if div_val is not None else '0%'
                     
                     sector = info.get('sector', 'N/A')
                     industry = info.get('industry', 'N/A')
-                    
                     high_52 = info.get('fiftyTwoWeekHigh', 'N/A')
                     low_52 = info.get('fiftyTwoWeekLow', 'N/A')
                     
@@ -139,8 +122,8 @@ if run_btn:
                             score = 0
                             if latest_close > latest_ema20: score += 1
                             if latest_macd > latest_signal: score += 1
-                            if pe_ratio and not pd.isna(pe_ratio) and float(pe_ratio) < 30: score += 1
-                            if roe and not pd.isna(roe) and float(roe) > 0.15: score += 1
+                            if pe_val and pe_val < 30: score += 1
+                            if roe_val and roe_val > 15: score += 1
                             
                             if score >= 3:
                                 st.success("**Overall Nishkarsh: STRONG BULLISH / MAZBOOT STHITI** ✅\nTechnical aur Fundamental dono parameters kafi behtar dikh rahe hain.")
@@ -160,8 +143,6 @@ if run_btn:
 
                     with tab2:
                         st.subheader("🚀 Powerful Swing Trading Analysis (Short-Term Momentum)")
-                        st.markdown("Yeh section unke liye hai jo kuch hafton ke andarkaar tezi ya breakout ka fayda uthana chahte hain.")
-                        
                         s1, s2, s3, s4 = st.columns(4)
                         s1.metric("RSI Power", f"{latest_rsi:.2f}")
                         s2.metric("20-Day EMA", f"₹{latest_ema20:.2f}")
@@ -170,48 +151,51 @@ if run_btn:
                         
                         st.markdown("---")
                         st.markdown("### 📋 Swing Trading Action Checklist:")
-                        
                         if latest_close > latest_ema20:
-                            st.markdown("✅ **Trend:** Price 20-day EMA ke upar hai, matlab short-term trend upar ki taraf hai.")
+                            st.markdown("✅ **Trend:** Price 20-day EMA ke upar hai.")
                         else:
-                            st.markdown("❌ **Trend:** Price 20-day EMA ke niche chal raha hai (Cautious rahein).")
-                            
-                        if latest_macd > latest_signal:
-                            st.markdown("✅ **Momentum (MACD):** MACD signal line ke upar hai, jo buying momentum ko dikhata hai.")
-                        else:
-                            st.markdown("❌ **Momentum (MACD):** MACD signal line ke niche hai, selling pressure ho sakti hai.")
-                            
-                        if 40 <= latest_rsi <= 60:
-                            st.markdown("✅ **RSI Zone:** RSI ekdam balanced zone mein hai, bada move aa sakta hai.")
-                        elif latest_rsi > 70:
-                            st.markdown("⚠️ **RSI Zone:** Stock 'Overbought' hai, yahan se profit booking aa sakti hai.")
-                        elif latest_rsi < 35:
-                            st.markdown("💡 **RSI Zone:** Stock 'Oversold' hai, yahan se sharp recovery ban sakti hai.")
+                            st.markdown("❌ **Trend:** Price 20-day EMA ke niche chal raha hai.")
 
                     with tab3:
                         st.subheader("💼 Expert Long-Term Investment Analysis")
                         st.markdown("Lambe samay ke nivesh (5-10 saal) ke liye business ki asli taqat yahan check karein:")
                         
+                        # --- INDICATOR LOGIC & COLOR MAPPING ---
+                        # P/E Logic: < 25 (Green), 25-40 (Yellow), > 40 or N/A (Red)
+                        if pe_val is not None:
+                            pe_ind = "🟢 (Behtareen / Sasta)" if pe_val < 25 else ("🟡 (Theek-Thak / Moderate)" if pe_val <= 40 else "🔴 (Mehanga / Overvalued)")
+                        else:
+                            pe_ind = "⚪ (Data Uplabdh Nahi)"
+
+                        # ROE Logic: > 15% (Green), 10-15% (Yellow), < 10% (Red)
+                        if roe_val is not None:
+                            roe_ind = "🟢 (Shandaar Profitability)" if roe_val > 15 else ("🟡 (Moderate Return)" if roe_val >= 10 else "🔴 (Kamzor Return)")
+                        else:
+                            roe_ind = "⚪ (Data Uplabdh Nahi)"
+
+                        # Debt Logic: < 0.5 (Green), 0.5-1.5 (Yellow), > 1.5 (Red)
+                        if de_val is not None:
+                            de_ind = "🟢 (Surakshit / Low Debt)" if de_val < 0.5 else ("🟡 (Moderate Debt)" if de_val <= 1.5 else "🔴 (Bari Karza / Risky)")
+                        else:
+                            de_ind = "🟢 (Low Debt / N/A)"
+
+                        # Dividend Logic: > 2% (Green), > 0% (Yellow), 0% (Red/Neutral)
+                        if div_val is not None:
+                            div_ind = "🟢 (Accha Dividend)" if div_val > 2 else ("🟡 (Kam Dividend)" if div_val > 0 else "⚪ (Dividend Nahi Deti)")
+                        else:
+                            div_ind = "⚪ (N/A)"
+
                         f1, f2, f3, f4 = st.columns(4)
-                        f1.metric("P/E Ratio", pe_str)
-                        f2.metric("ROE (Return)", roe_str)
-                        f3.metric("Debt-to-Equity", de_str)
-                        f4.metric("Dividend Yield", div_str)
+                        f1.metric("P/E Ratio", pe_str, pe_ind)
+                        f2.metric("ROE (Return)", roe_str, roe_ind)
+                        f3.metric("Debt-to-Equity", de_str, de_ind)
+                        f4.metric("Dividend Yield", div_str, div_ind)
                         
                         st.markdown("---")
-                        st.markdown("### 🔍 Gehri Jaanch (Deep-Dive Analysis in Hindi):")
-                        
-                        st.markdown("#### 1. Company Kitni Sasti ya Mehngi Hai? (Valuation)")
-                        st.markdown(f"P/E Ratio **{pe_str}** hai. Agar yeh apne industry average se kam aur 30 ke andar ho, toh ise achha daam mana jata hai.")
-                        
-                        st.markdown("#### 2. Management Ka Performance (ROE)")
-                        st.markdown(f"Return on Equity (ROE) **{roe_str}** hai. 15% ya usse zyada ka ROE yeh sabit karta hai ki company apne business se zabardast munafa nikal kar de rahi hai.")
-                        
-                        st.markdown("#### 3. Suraksha aur Karza (Financial Stability)")
-                        st.markdown(f"Debt-to-Equity ratio **{de_str}** hai. Kam karza ya debt-free hona kisi bhi company ko economic crisis mein bhi surakshit rakhta hai.")
-                        
-                        st.markdown("#### 4. 52-Week Range (Price Context)")
-                        st.markdown(f"Pichle ek saal mein stock ka high **₹{high_52}** aur low **₹{low_52}** raha hai.")
+                        st.markdown("### 🔍 Gehri Jaanch (Indicator Meaning):")
+                        st.markdown("- 🟢 **Green (Hara):** Yeh darshata hai ki yeh parameter ekdum safe aur acchi sthiti mein hai.")
+                        st.markdown("- 🟡 **Yellow (Peela):** Yeh average ya moderate sthiti hai, ispar thoda dhyan dena chahiye.")
+                        st.markdown("- 🔴 **Red (Laal):** Yeh risk ya kamzori ka sanket hai, ismein savdhani rakhni zaroori hai.")
 
             except Exception as e:
                 st.error(f"Koyi error aa gaya: {e}")
