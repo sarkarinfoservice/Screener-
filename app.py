@@ -73,7 +73,7 @@ if run_btn:
                     df['MACD'] = exp1 - exp2
                     df['Signal_Line'] = df['MACD'].ewm(span=9, adjust=False).mean()
 
-                    # Bollinger Bands & Volume (NEW)
+                    # Bollinger Bands & Volume
                     df['BB_Mid'] = df['Close'].rolling(window=20).mean()
                     df['BB_Std'] = df['Close'].rolling(window=20).std()
                     df['BB_Upper'] = df['BB_Mid'] + (2 * df['BB_Std'])
@@ -156,7 +156,7 @@ if run_btn:
                                 st.error("**Overall Nishkarsh: WEAK / SAWDHANI ZAROORI** ⚠️\nFilhal stock mein kamzori ya risk zyada lag raha hai.")
                         
                         st.markdown("---")
-                        st.markdown("### 🚦 Clear Buying & Holding Verdict:")
+                        st.markdown("### 🚦 Overall Buying & Holding Verdict:")
                         if score >= 3:
                             st.markdown("🟢 **Naya Kharidein:** Haan, aap ismein naya nivesh karne ka soch sakte hain.")
                             st.markdown("🔒 **Existing Position:** **HOLD (Apne paas rakhein)**.")
@@ -175,7 +175,7 @@ if run_btn:
                         }))
 
                     # ==========================================
-                    # UPDATED TAB 2: SWING TRADING ANALYSIS
+                    # TAB 2: SWING TRADING ANALYSIS + VERDICT
                     # ==========================================
                     with tab2:
                         st.subheader("🚀 Powerful Swing Trading Analysis (Short-Term Momentum)")
@@ -191,45 +191,46 @@ if run_btn:
                         
                         st.markdown("---")
                         
-                        # Support & Resistance Levels
-                        st.markdown("### 🎯 Key Levels (Support & Resistance):")
-                        col_l1, col_l2, col_l3 = st.columns(3)
-                        with col_l1:
-                            st.info(f"**Immediate Support (20 EMA):**\n### ₹{latest_ema20:.2f}")
-                            st.info(f"**Strong Support (Bollinger Lower):**\n### ₹{latest_bb_lower:.2f}")
-                        with col_l2:
-                            st.warning(f"**Current Price:**\n### ₹{latest_close:.2f}")
-                            st.warning(f"**Trend Midline (50 EMA):**\n### ₹{latest_ema50:.2f}")
-                        with col_l3:
-                            st.error(f"**Immediate Resistance (BB Upper):**\n### ₹{latest_bb_upper:.2f}")
-                            st.error(f"**52-Week High:**\n### ₹{high_52}")
-
-                        st.markdown("---")
-                        
                         # Detailed Checklist
-                        st.markdown("### 📋 Swing Trading Action Checklist & Logic:")
+                        st.markdown("### 📋 Swing Trading Action Checklist:")
                         
+                        swing_score = 0
                         if latest_close > latest_ema20:
-                            st.markdown("✅ **Trend (EMA):** Price 20-day EMA ke upar hai. (Short-term trend **Bullish** hai)")
+                            st.markdown("✅ **Trend (EMA):** Price 20-day EMA ke upar hai. (Trend **Bullish** hai)")
+                            swing_score += 1
                         else:
-                            st.markdown("❌ **Trend (EMA):** Price 20-day EMA ke niche chal raha hai. (Trend **Weak** hai, wait karein)")
+                            st.markdown("❌ **Trend (EMA):** Price 20-day EMA ke niche chal raha hai. (Trend **Weak** hai)")
                             
                         if 40 <= latest_rsi <= 65:
-                            st.markdown(f"✅ **RSI (Momentum):** RSI {latest_rsi:.2f} par hai, jo ki ek perfect zone (40-65) mein hai. Swing ke liye accha momentum hai.")
+                            st.markdown(f"✅ **RSI (Momentum):** RSI {latest_rsi:.2f} par hai (Perfect Zone 40-65).")
+                            swing_score += 1
                         elif latest_rsi > 65:
-                            st.markdown(f"⚠️ **RSI (Momentum):** RSI {latest_rsi:.2f} par hai. Stock overbought zone ke kareeb hai, naya trade lene se bachein (Profit booking aa sakti hai).")
+                            st.markdown(f"⚠️ **RSI (Momentum):** RSI {latest_rsi:.2f} par hai. Stock overbought zone ke kareeb hai.")
                         else:
-                            st.markdown(f"❌ **RSI (Momentum):** RSI {latest_rsi:.2f} par hai. Stock oversold hai par momentum weak hai (Reversal ka wait karein).")
+                            st.markdown(f"❌ **RSI (Momentum):** RSI {latest_rsi:.2f} par hai. Momentum weak hai.")
 
                         if latest_macd > latest_signal:
-                            st.markdown("✅ **MACD:** MACD line Signal line ke upar hai. (Fresh **Buying interest** dikh raha hai)")
+                            st.markdown("✅ **MACD:** MACD line Signal line ke upar hai. (Fresh **Buying interest**)")
+                            swing_score += 1
                         else:
-                            st.markdown("❌ **MACD:** MACD line Signal line ke niche hai. (**Selling pressure** zyada hai)")
+                            st.markdown("❌ **MACD:** MACD line Signal line ke niche hai. (**Selling pressure**)")
 
                         if latest_vol > vol_sma20:
-                            st.markdown("✅ **Volume:** Aaj ka volume pichle 20 din ke average volume se zyada hai. (**Bade khiladi market mein active hain**)")
+                            st.markdown("✅ **Volume:** Aaj ka volume average volume se zyada hai. (**Strong Move**)")
+                            swing_score += 1
                         else:
                             st.markdown("⚠️ **Volume:** Volume average se kam hai. (Move mein strength kam ho sakti hai)")
+
+                        # NEW: SWING TRADING VERDICT
+                        st.markdown("---")
+                        st.markdown("### 🚦 Swing Trading Final Verdict (Kya Karein?):")
+                        
+                        if swing_score == 4:
+                            st.success("**VERDICT: PERFECT SWING ENTRY (Mazboot Sthiti) 🚀**\nSaare parameters positive hain. Aap current price par ya halke dip par entry lene ka soch sakte hain.")
+                        elif swing_score >= 2:
+                            st.warning("**VERDICT: WAIT & WATCH (Ya Choti Quantity Lein) ⚖️**\nKuch indicators positive hain par sabhi nahi. Agar risk lena chahein toh sirf choti quantity mein trade lein ya perfect setup ka wait karein.")
+                        else:
+                            st.error("**VERDICT: AVOID / NO TRADE ZONE 🚫**\nFilhal stock mein swing trading ke liye strength nahi hai. Reversal ya breakout ka wait karein, abhi entry na lein.")
 
                         st.markdown("---")
                         
