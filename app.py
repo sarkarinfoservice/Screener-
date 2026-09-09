@@ -182,12 +182,17 @@ if run_btn:
                         
                         # Top Metrics
                         s1, s2, s3, s4 = st.columns(4)
-                        s1.metric("RSI (Momentum)", f"{latest_rsi:.2f}", "Overbought 🔴" if latest_rsi > 70 else "Oversold 🟢" if latest_rsi < 35 else "Balanced 🟢")
-                        s2.metric("20-Day EMA (Trend)", f"₹{latest_ema20:.2f}")
-                        s3.metric("MACD Crossover", "Bullish 🟢" if latest_macd > latest_signal else "Bearish 🔴")
-                        
-                        vol_status = "High Volume 🟢" if latest_vol > vol_sma20 else "Low Volume 🔴"
-                        s4.metric("Volume Activity", f"{latest_vol / 100000:.2f}L", vol_status)
+                        with s1:
+                            st.metric("RSI (Momentum)", f"{latest_rsi:.2f}", "Overbought 🔴" if latest_rsi > 70 else "Oversold 🟢" if latest_rsi < 35 else "Balanced 🟢")
+                        with s2:
+                            st.metric("20-Day EMA (Trend)", f"₹{latest_ema20:.2f}")
+                        with s3:
+                            st.metric("MACD Crossover", "Bullish 🟢" if latest_macd > latest_signal else "Bearish 🔴")
+                        with s4:
+                            vol_status = "High Volume 🟢" if latest_vol > vol_sma20 else "Low Volume 🔴"
+                            st.metric("Volume Activity", f"{latest_vol / 100000:.2f}L", vol_status)
+                            # NEW: Volume vs Average caption added here
+                            st.caption(f"**Vol vs Avg:** {latest_vol / 100000:.2f}L / {vol_sma20 / 100000:.2f}L")
                         
                         st.markdown("---")
                         
@@ -221,7 +226,7 @@ if run_btn:
                         else:
                             st.markdown("⚠️ **Volume:** Volume average se kam hai. (Move mein strength kam ho sakti hai)")
 
-                        # NEW: SWING TRADING VERDICT
+                        # SWING TRADING VERDICT
                         st.markdown("---")
                         st.markdown("### 🚦 Swing Trading Final Verdict (Kya Karein?):")
                         
@@ -230,7 +235,7 @@ if run_btn:
                         elif swing_score >= 2:
                             st.warning("**VERDICT: WAIT & WATCH (Ya Choti Quantity Lein) ⚖️**\nKuch indicators positive hain par sabhi nahi. Agar risk lena chahein toh sirf choti quantity mein trade lein ya perfect setup ka wait karein.")
                         else:
-                            st.error("**VERDICT: AVOID / NO TRADE ZONE 🚫**\nFilhal stock mein swing trading ke liye strength nahi hai. Reversal ya breakout ka wait karein, abhi entry na lein.")
+                            st.error("**VERDICT: AVOID / NO TRADE Zone 🚫**\nFilhal stock mein swing trading ke liye strength nahi hai. Reversal ya breakout ka wait karein, abhi entry na lein.")
 
                         st.markdown("---")
                         
