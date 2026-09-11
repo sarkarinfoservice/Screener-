@@ -191,7 +191,6 @@ if run_btn:
                         with s4:
                             vol_status = "High Volume 🟢" if latest_vol > vol_sma20 else "Low Volume 🔴"
                             st.metric("Volume Activity", f"{latest_vol / 100000:.2f}L", vol_status)
-                            # NEW: Volume vs Average caption added here
                             st.caption(f"**Vol vs Avg:** {latest_vol / 100000:.2f}L / {vol_sma20 / 100000:.2f}L")
                         
                         st.markdown("---")
@@ -247,29 +246,68 @@ if run_btn:
                         else:
                             st.markdown(f"> **🎯 Target:** Stock pehle se hi resistance (₹{latest_bb_upper:.2f}) ke upar hai. Apne Stop-Loss ko trail karte rahein (Trail SL).")
 
+                    # ==========================================
+                    # TAB 3: EXPERT LONG-TERM ANALYSIS
+                    # ==========================================
                     with tab3:
                         st.subheader("💼 Expert Long-Term Investment Analysis")
-                        st.markdown("Lambe samay ke nivesh (5-10 saal) ke liye business ki asli taqat yahan check karein:")
+                        st.markdown("Lambe samay ke nivesh (5-10 saal) ke liye business ki asli taqat aur fundamentals yahan check karein:")
                         
-                        pe_ind = "🟢 (Sasta)" if pe_val and pe_val < 25 else ("🟡 (Moderate)" if pe_val and pe_val <= 40 else "🔴 (Mehanga)") if pe_val else "⚪ (N/A)"
-                        roe_ind = "🟢 (Shandaar)" if roe_val and roe_val > 15 else ("🟡 (Average)" if roe_val and roe_val >= 10 else "🔴 (Kamzor)") if roe_val else "⚪ (N/A)"
-                        de_ind = "🟢 (Low Debt)" if de_val and de_val < 0.5 else ("🟡 (Moderate)" if de_val and de_val <= 1.5 else "🔴 (High Risk)") if de_val else "🟢 (Low Debt)"
-                        div_ind = "🟢 (Accha)" if div_val and div_val > 2 else ("🟡 (Kam)" if div_val and div_val > 0 else "⚪ (Nahi Deti)") if div_val else "⚪ (N/A)"
+                        # --- NEW FUNDAMENTAL METRICS ---
+                        pb_ratio = info.get('priceToBook', None)
+                        pb_val = float(pb_ratio) if pb_ratio and not pd.isna(pb_ratio) else None
+                        pb_str = f"{pb_val:.2f}" if pb_val is not None else 'N/A'
+                        
+                        profit_margin = info.get('profitMargins', None)
+                        pm_val = float(profit_margin) * 100 if profit_margin and not pd.isna(profit_margin) else None
+                        pm_str = f"{pm_val:.2f}%" if pm_val is not None else 'N/A'
+                        
+                        eps = info.get('trailingEps', None)
+                        eps_str = f"₹{float(eps):.2f}" if eps and not pd.isna(eps) else 'N/A'
+                        
+                        # --- INDICATOR SIGNALS ---
+                        pe_ind = "🟢" if pe_val and pe_val < 25 else ("🟡" if pe_val and pe_val <= 40 else "🔴") if pe_val else "⚪"
+                        roe_ind = "🟢" if roe_val and roe_val > 15 else ("🟡" if roe_val and roe_val >= 10 else "🔴") if roe_val else "⚪"
+                        de_ind = "🟢" if de_val and de_val < 0.5 else ("🟡" if de_val and de_val <= 1.5 else "🔴") if de_val else "🟢"
+                        div_ind = "🟢" if div_val and div_val > 1 else ("🟡" if div_val and div_val > 0 else "⚪") if div_val else "⚪"
+                        pb_ind = "🟢" if pb_val and pb_val < 3 else ("🟡" if pb_val and pb_val <= 5 else "🔴") if pb_val else "⚪"
+                        pm_ind = "🟢" if pm_val and pm_val > 10 else ("🟡" if pm_val and pm_val > 0 else "🔴") if pm_val else "⚪"
 
-                        f1, f2, f3, f4 = st.columns(4)
-                        f1.metric("P/E Ratio", pe_str, pe_ind)
-                        f2.metric("ROE (Return)", roe_str, roe_ind)
-                        f3.metric("Debt-to-Equity", de_str, de_ind)
-                        f4.metric("Dividend Yield", div_str, div_ind)
-                        
+                        # --- MOBILE FRIENDLY 2x2 GRID ---
+                        st.markdown("#### 📊 Core Fundamental Metrics")
+                        m1, m2 = st.columns(2)
+                        with m1:
+                            st.metric("P/E Ratio (Valuation)", f"{pe_str}", pe_ind)
+                            st.metric("Debt-to-Equity (Karza)", f"{de_str}", de_ind)
+                            st.metric("Net Profit Margin", f"{pm_str}", pm_ind)
+                        with m2:
+                            st.metric("ROE (Return on Equity)", f"{roe_str}", roe_ind)
+                            st.metric("P/B Ratio (Book Value)", f"{pb_str}", pb_ind)
+                            st.metric("EPS (Earning Per Share)", f"{eps_str}", "🟢")
+                            
                         st.markdown("---")
-                        st.markdown("### 🔍 Gehri Jaanch (Deep-Dive Analysis):")
-                        st.markdown(f"**1. Valuation:** P/E Ratio **{pe_str}** hai. 25-30 ke andar ka P/E ratio ek accha nivesh maana jata hai.")
-                        st.markdown(f"**2. Performance:** Return on Equity (ROE) **{roe_str}** hai. 15% ya usse zyada shandaar munafa mana jata hai.")
-                        st.markdown(f"**3. Karza (Debt):** Debt-to-Equity ratio **{de_str}** hai. Kam karza company ko surakshit rakhta hai.")
-                        st.markdown(f"**4. Range:** Pichle 1 saal ka high **₹{high_52}** aur low **₹{low_52}** raha hai, aur Dividend **{div_str}** hai.")
-
-            except Exception as e:
-                st.error(f"Koyi error aa gaya: {e}")
-else:
-    st.info("Upar diye gaye box mein stock ka symbol daal kar **'Deep Analyze Karein'** button dabayein.")
+                        
+                        # --- DETAILED CHECKLIST ---
+                        st.markdown("### 📋 Long-Term Action Checklist:")
+                        lt_score = 0
+                        
+                        if pe_val and pe_val < 25:
+                            st.markdown(f"✅ **Valuation (P/E): {pe_str}** - Stock saste ya bilkul sahi daam par mil raha hai.")
+                            lt_score += 1
+                        elif pe_val:
+                            st.markdown(f"⚠️ **Valuation (P/E): {pe_str}** - Stock thoda mehanga lag raha hai (Premium Valuation).")
+                            
+                        if roe_val and roe_val > 15:
+                            st.markdown(f"✅ **Profitability (ROE): {roe_str}** - Company apne capital par behtareen munafa kama rahi hai (15%+).")
+                            lt_score += 1
+                        elif roe_val:
+                            st.markdown(f"❌ **Profitability (ROE): {roe_str}** - Munafa kamane ki raftaar thodi dheemi hai.")
+                            
+                        if de_val and de_val < 0.5:
+                            st.markdown(f"✅ **Financial Health (Debt): {de_str}** - Company par karza bahut kam ya na ke barabar hai. Safest zone!")
+                            lt_score += 1
+                        elif de_val:
+                            st.markdown(f"⚠️ **Financial Health (Debt): {de_str}** - Company par karza zyada hai, jisse long-term risk badh sakta hai.")
+                            
+                        if pb_val and pb_val < 3:
+                            st.markdown(f"✅ **Book Value (P/B): {pb_str}** - Price-to-Book ratio 3 se kam h
