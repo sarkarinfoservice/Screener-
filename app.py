@@ -246,7 +246,7 @@ if run_btn:
                         else:
                             st.markdown(f"> **🎯 Target:** Stock pehle se hi resistance (₹{latest_bb_upper:.2f}) ke upar hai. Apne Stop-Loss ko trail karte rahein (Trail SL).")
 
-# ==========================================
+                    # ==========================================
                     # TAB 3: EXPERT LONG-TERM ANALYSIS
                     # ==========================================
                     with tab3:
@@ -336,5 +336,3 @@ if run_btn:
                 st.error(f"Koyi error aa gaya: {e}")
 else:
     st.info("Upar diye gaye box mein stock ka symbol daal kar **'Deep Analyze Karein'** button dabayein.")
-
-                    
