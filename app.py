@@ -246,7 +246,7 @@ if run_btn:
                         else:
                             st.markdown(f"> **🎯 Target:** Stock pehle se hi resistance (₹{latest_bb_upper:.2f}) ke upar hai. Apne Stop-Loss ko trail karte rahein (Trail SL).")
 
-                    # ==========================================
+# ==========================================
                     # TAB 3: EXPERT LONG-TERM ANALYSIS
                     # ==========================================
                     with tab3:
@@ -310,4 +310,31 @@ if run_btn:
                             st.markdown(f"⚠️ **Financial Health (Debt): {de_str}** - Company par karza zyada hai, jisse long-term risk badh sakta hai.")
                             
                         if pb_val and pb_val < 3:
-                            st.markdown(f"✅ **Book Value (P/B): {pb_str}** - Price-to-Book ratio 3 se kam h
+                            st.markdown(f"✅ **Book Value (P/B): {pb_str}** - Price-to-Book ratio 3 se kam hai. Value investing ke hisaab se kaafi accha hai.")
+                            lt_score += 1
+                        elif pb_val:
+                            st.markdown(f"⚠️ **Book Value (P/B): {pb_str}** - Stock apni asli net asset value se kaafi mehanga trade kar raha hai.")
+
+                        if pm_val and pm_val > 10:
+                            st.markdown(f"✅ **Profit Margin: {pm_str}** - Company apne sales par accha margin bacha rahi hai.")
+                            lt_score += 1
+                        elif pm_val:
+                            st.markdown(f"❌ **Profit Margin: {pm_str}** - Profit margin kam hai, yani company ke kharche zyada hain.")
+
+                        st.markdown("---")
+                        
+                        # --- LONG TERM VERDICT ---
+                        st.markdown("### 🏛️ Long-Term Final Verdict (Kya Karein?):")
+                        if lt_score >= 4:
+                            st.success("**VERDICT: STRONG BUY / HOLD FOR LONG TERM 🌟**\nBusiness ke fundamentals bahut mazboot hain. Yeh lambe samay (5-10 saal) ke liye ek badiya wealth creator ban sakta hai. Aap SIP ya dips mein accumulate kar sakte hain.")
+                        elif lt_score >= 2:
+                            st.warning("**VERDICT: MODERATE / AVERAGE ⚖️**\nCompany theek-thaak hai, par kuch kamzoriyan (jaise karza ya mehangi valuation) hain. Nivesh se pehle dhyan dein ya portfolio ka sirf ek chota hissa hi lagayein.")
+                        else:
+                            st.error("**VERDICT: WEAK FUNDAMENTALS 🚫**\nLambe samay ke hisaab se is stock mein fundamental risk zyada hai. Ise avoid karna filhal behtar option rahega.")
+
+            except Exception as e:
+                st.error(f"Koyi error aa gaya: {e}")
+else:
+    st.info("Upar diye gaye box mein stock ka symbol daal kar **'Deep Analyze Karein'** button dabayein.")
+
+                    
