@@ -122,11 +122,11 @@ if run_btn:
                     roe_status = f"{roe_str} 🟢" if roe_val and roe_val > 15 else (f"{roe_str} 🟡" if roe_val and roe_val >= 10 else f"{roe_str} 🔴") if roe_val else "N/A ⚪"
                     de_status = f"{de_str} 🟢" if de_val and de_val < 0.5 else (f"{de_str} 🟡" if de_val and de_val <= 1.5 else f"{de_str} 🔴") if de_val else "N/A 🟢"
                     
-                    # RSI FIXED LOGIC
+                    # RSI FIXED LOGIC (YELLOW FOR OVERSOLD)
                     if latest_rsi > 65:
                         rsi_status = f"{latest_rsi:.2f} 🔴 (Overbought)"
                     elif latest_rsi < 40:
-                        rsi_status = f"{latest_rsi:.2f} 🟢 (Oversold)"
+                        rsi_status = f"{latest_rsi:.2f} 🟡 (Oversold)"
                     else:
                         rsi_status = f"{latest_rsi:.2f} 🟢 (Balanced)"
 
@@ -184,7 +184,7 @@ if run_btn:
                         # Top Metrics (RSI Status Label Fixed Here Too)
                         s1, s2, s3, s4 = st.columns(4)
                         with s1:
-                            st.metric("RSI (Momentum)", f"{latest_rsi:.2f}", "Overbought 🔴" if latest_rsi > 65 else "Oversold 🟢" if latest_rsi < 40 else "Balanced 🟢")
+                            st.metric("RSI (Momentum)", f"{latest_rsi:.2f}", "Overbought 🔴" if latest_rsi > 65 else "Oversold 🟡" if latest_rsi < 40 else "Balanced 🟢")
                         with s2:
                             st.metric("20-Day EMA (Trend)", f"₹{latest_ema20:.2f}")
                         with s3:
@@ -212,7 +212,7 @@ if run_btn:
                         elif latest_rsi > 65:
                             st.markdown(f"⚠️ **RSI (Momentum):** RSI {latest_rsi:.2f} par hai. Stock overbought zone ke kareeb hai.")
                         else:
-                            st.markdown(f"❌ **RSI (Momentum):** RSI {latest_rsi:.2f} par hai. Momentum weak ya oversold hai.")
+                            st.markdown(f"🟡 **RSI (Momentum):** RSI {latest_rsi:.2f} par hai. Momentum weak ya oversold hai (Wait & Watch).")
 
                         if latest_macd > latest_signal:
                             st.markdown("✅ **MACD:** MACD line Signal line ke upar hai. (Fresh **Buying interest**)")
