@@ -11,8 +11,7 @@ st.markdown("Yeh app **Swing Trading** (Short-term momentum) aur **Long-Term Inv
 
 st.markdown("---")
 
-# Saare popular stocks ki list (Kite/Upstox jaisa search feature dene ke liye)
-# Aap is list mein apne hisaab se aur stocks add kar sakte hain
+# Saare popular stocks ki list (Type karte hi inme se suggestions aayenge)
 popular_stocks = [
     "ADANIENT", "ASIANPAINT", "AXISBANK", "BAJAJ-AUTO", "BAJFINANCE", 
     "BEL", "BHARTIARTL", "CUPID", "HCLTECH", "HDFCBANK", 
@@ -26,10 +25,12 @@ popular_stocks = [
 # Main Page Inputs
 col_in1, col_in2, col_in3 = st.columns([2, 2, 1])
 with col_in1:
-    # text_input ki jagah selectbox lagaya gaya hai jo type karne par auto-suggest karega
+    # index=None lagane se yeh Kite jaisa empty search box ban jayega
     symbol = st.selectbox(
-        "Stock Ka Naam Chunein ya Type Karein", 
-        options=popular_stocks
+        "Stock Search Karein", 
+        options=popular_stocks,
+        index=None,  # Box ko default khali rakhne ke liye
+        placeholder="Type karein (jaise RELIANCE, TCS)..." # Khali box mein background text
     )
 with col_in2:
     exchange = st.selectbox("Exchange Chunein", ["NSE (.NS)", "BSE (.BO)"])
@@ -38,8 +39,8 @@ with col_in3:
     run_btn = st.button("Deep Analyze Karein", type="primary")
 
 if run_btn:
-    if not symbol:
-        st.warning("Kripya pehle stock ka naam chunein.")
+    if symbol is None or symbol == "":  # Agar user ne bina search kiye button daba diya
+        st.warning("Kripya pehle stock ka naam search karke select karein.")
     else:
         suffix = ".NS" if "NSE" in exchange else ".BO"
         ticker_symbol = symbol + suffix
@@ -54,7 +55,6 @@ if run_btn:
                 info = stock.info
                 
                 if df.empty or len(df) < 2:
-                    # Agar data na mile toh custom Hindi error
                     st.error(f"❌ '{symbol}' ka price data nahi mila. Kripya sahi naam chunein ya thodi der baad try karein.")
                 else:
                     if isinstance(df.columns, pd.MultiIndex):
@@ -118,15 +118,12 @@ if run_btn:
                     div_str = f"{div_val:.2f}%" if div_val is not None else '0%'
                     sector = info.get('sector', 'N/A')
                     industry = info.get('industry', 'N/A')
-                    high_52 = info.get('fiftyTwoWeekHigh', 'N/A')
-                    low_52 = info.get('fiftyTwoWeekLow', 'N/A')
                     
                     # --- TABLE INDICATOR LOGIC ---
                     pe_status = f"{pe_str} 🟢" if pe_val and pe_val < 25 else (f"{pe_str} 🟡" if pe_val and pe_val <= 40 else f"{pe_str} 🔴") if pe_val else "N/A ⚪"
                     roe_status = f"{roe_str} 🟢" if roe_val and roe_val > 15 else (f"{roe_str} 🟡" if roe_val and roe_val >= 10 else f"{roe_str} 🔴") if roe_val else "N/A ⚪"
                     de_status = f"{de_str} 🟢" if de_val and de_val < 0.5 else (f"{de_str} 🟡" if de_val and de_val <= 1.5 else f"{de_str} 🔴") if de_val else "N/A 🟢"
                     
-                    # RSI FIXED LOGIC (YELLOW FOR OVERSOLD)
                     if latest_rsi > 65:
                         rsi_status = f"{latest_rsi:.2f} 🔴 (Overbought)"
                     elif latest_rsi < 40:
@@ -179,13 +176,8 @@ if run_btn:
                             "Ideal Target": ["< 30", "> 15%", "< 0.5", "40 - 65", "Positive Crossover"]
                         }))
 
-                    # ==========================================
-                    # TAB 2: SWING TRADING ANALYSIS + VERDICT
-                    # ==========================================
                     with tab2:
                         st.subheader("🚀 Powerful Swing Trading Analysis (Short-Term Momentum)")
-                        
-                        # Top Metrics (RSI Status Label Fixed Here Too)
                         s1, s2, s3, s4 = st.columns(4)
                         with s1:
                             st.metric("RSI (Momentum)", f"{latest_rsi:.2f}", "Overbought 🔴" if latest_rsi > 65 else "Oversold 🟡" if latest_rsi < 40 else "Balanced 🟢")
@@ -199,8 +191,6 @@ if run_btn:
                             st.caption(f"**Vol vs Avg:** {latest_vol / 100000:.2f}L / {vol_sma20 / 100000:.2f}L")
                         
                         st.markdown("---")
-                        
-                        # Detailed Checklist
                         st.markdown("### 📋 Swing Trading Action Checklist:")
                         
                         swing_score = 0
@@ -230,7 +220,6 @@ if run_btn:
                         else:
                             st.markdown("⚠️ **Volume:** Volume average se kam hai. (Move mein strength kam ho sakti hai)")
 
-                        # SWING TRADING VERDICT
                         st.markdown("---")
                         st.markdown("### 🚦 Swing Trading Final Verdict (Kya Karein?):")
                         
@@ -242,8 +231,6 @@ if run_btn:
                             st.error("**VERDICT: AVOID / NO TRADE Zone 🚫**\nFilhal stock mein swing trading ke liye strength nahi hai. Reversal ya breakout ka wait karein, abhi entry na lein.")
 
                         st.markdown("---")
-                        
-                        # Trading Strategy Ideas
                         st.markdown("### 💡 Strategy Idea (Risk Management):")
                         st.markdown(f"> **🛡️ Stop-Loss:** Agar aap trade lete hain, toh apna Stop-Loss lagbhag **₹{latest_ema20:.2f}** (20-Day EMA) ya **₹{latest_bb_lower:.2f}** (Strong Support) ke thoda niche rakh sakte hain taaki risk kam rahe.")
                         if latest_close < latest_bb_upper:
@@ -251,14 +238,10 @@ if run_btn:
                         else:
                             st.markdown(f"> **🎯 Target:** Stock pehle se hi resistance (₹{latest_bb_upper:.2f}) ke upar hai. Apne Stop-Loss ko trail karte rahein (Trail SL).")
 
-                    # ==========================================
-                    # TAB 3: EXPERT LONG-TERM ANALYSIS
-                    # ==========================================
                     with tab3:
                         st.subheader("💼 Expert Long-Term Investment Analysis")
                         st.markdown("Lambe samay ke nivesh (5-10 saal) ke liye business ki asli taqat aur fundamentals yahan check karein:")
                         
-                        # --- NEW FUNDAMENTAL METRICS ---
                         pb_ratio = info.get('priceToBook', None)
                         pb_val = float(pb_ratio) if pb_ratio and not pd.isna(pb_ratio) else None
                         pb_str = f"{pb_val:.2f}" if pb_val is not None else 'N/A'
@@ -270,7 +253,6 @@ if run_btn:
                         eps = info.get('trailingEps', None)
                         eps_str = f"₹{float(eps):.2f}" if eps and not pd.isna(eps) else 'N/A'
                         
-                        # --- INDICATOR SIGNALS ---
                         pe_ind = "🟢" if pe_val and pe_val < 25 else ("🟡" if pe_val and pe_val <= 40 else "🔴") if pe_val else "⚪"
                         roe_ind = "🟢" if roe_val and roe_val > 15 else ("🟡" if roe_val and roe_val >= 10 else "🔴") if roe_val else "⚪"
                         de_ind = "🟢" if de_val and de_val < 0.5 else ("🟡" if de_val and de_val <= 1.5 else "🔴") if de_val else "🟢"
@@ -278,7 +260,6 @@ if run_btn:
                         pb_ind = "🟢" if pb_val and pb_val < 3 else ("🟡" if pb_val and pb_val <= 5 else "🔴") if pb_val else "⚪"
                         pm_ind = "🟢" if pm_val and pm_val > 10 else ("🟡" if pm_val and pm_val > 0 else "🔴") if pm_val else "⚪"
 
-                        # --- MOBILE FRIENDLY 2x2 GRID ---
                         st.markdown("#### 📊 Core Fundamental Metrics")
                         m1, m2 = st.columns(2)
                         with m1:
@@ -291,8 +272,6 @@ if run_btn:
                             st.metric("EPS (Earning Per Share)", f"{eps_str}", "🟢")
                             
                         st.markdown("---")
-                        
-                        # --- DETAILED CHECKLIST ---
                         st.markdown("### 📋 Long-Term Action Checklist:")
                         lt_score = 0
                         
@@ -327,8 +306,6 @@ if run_btn:
                             st.markdown(f"❌ **Profit Margin: {pm_str}** - Profit margin kam hai, yani company ke kharche zyada hain.")
 
                         st.markdown("---")
-                        
-                        # --- LONG TERM VERDICT ---
                         st.markdown("### 🏛️ Long-Term Final Verdict (Kya Karein?):")
                         if lt_score >= 4:
                             st.success("**VERDICT: STRONG BUY / HOLD FOR LONG TERM 🌟**\nBusiness ke fundamentals bahut mazboot hain. Yeh lambe samay (5-10 saal) ke liye ek badiya wealth creator ban sakta hai. Aap SIP ya dips mein accumulate kar sakte hain.")
@@ -338,7 +315,6 @@ if run_btn:
                             st.error("**VERDICT: WEAK FUNDAMENTALS 🚫**\nLambe samay ke hisaab se is stock mein fundamental risk zyada hai. Ise avoid karna filhal behtar option rahega.")
 
             except Exception as e:
-                # Agar koi unexpected API ya 404 URL error aaye toh yeh custom message chalega
                 st.error("❌ Stock ka naam galat hai ya Yahoo Finance par data available nahi hai. Kripya sahi naam chunein.")
 else:
-    st.info("Upar diye gaye box mein stock ka symbol daal kar **'Deep Analyze Karein'** button dabayein.")
+    st.info("Upar diye gaye search box mein stock ka naam search kar ke **'Deep Analyze Karein'** button dabayein.")
