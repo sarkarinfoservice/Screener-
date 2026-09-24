@@ -7,7 +7,7 @@ import io
 
 st.set_page_config(page_title="Advanced Stock Screener Pro", page_icon="📈", layout="wide")
 
-st.title("🚀 Advanced Stock Screener (Long-Term & Swing Trading)")
+st.subheader("🚀 Advanced Stock Screener (Long-Term & Swing Trading)")
 st.markdown("Yeh app **Swing Trading** (Short-term momentum) aur **Long-Term Investment** (Fundamental strength) dono ke liye complete aur aasan Hindi analysis deti hai.")
 
 st.markdown("---")
