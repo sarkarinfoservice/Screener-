@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import requests
+import io
 
 st.set_page_config(page_title="Advanced Stock Screener Pro", page_icon="📈", layout="wide")
 
@@ -11,26 +12,30 @@ st.markdown("Yeh app **Swing Trading** (Short-term momentum) aur **Long-Term Inv
 
 st.markdown("---")
 
-# Saare popular stocks ki list (Type karte hi inme se suggestions aayenge)
-popular_stocks = [
-    "ADANIENT", "ASIANPAINT", "AXISBANK", "BAJAJ-AUTO", "BAJFINANCE", 
-    "BEL", "BHARTIARTL", "CUPID", "HCLTECH", "HDFCBANK", 
-    "HEROMOTOCO", "HINDUNILVR", "ICICIBANK", "INFY", "ITC", 
-    "KOTAKBANK", "LT", "M&M", "MARUTI", "NTPC", 
-    "POWERGRID", "RELIANCE", "SBIN", "SUNPHARMA", "TATAMOTORS", 
-    "TATASTEEL", "TCS", "TITAN", "TVSMOTOR", "ULTRACEMCO", 
-    "WIPRO", "ZOMATO"
-]
+# Din mein ek baar NSE ki website se 2000+ stocks ki list fetch karke cache mein save karega
+@st.cache_data(ttl=86400) 
+def get_all_stocks():
+    try:
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+        url = "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
+        response = requests.get(url, headers=headers, timeout=10)
+        df = pd.read_csv(io.StringIO(response.text))
+        return df['SYMBOL'].tolist()
+    except Exception:
+        # Agar NSE ki site band ho, toh yeh backup list chalegi
+        return ["RELIANCE", "TCS", "HDFCBANK", "INFY", "TVSMOTOR", "ZOMATO", "TATAMOTORS", "BAJFINANCE", "BEL"]
+
+popular_stocks = get_all_stocks()
 
 # Main Page Inputs
 col_in1, col_in2, col_in3 = st.columns([2, 2, 1])
 with col_in1:
-    # index=None lagane se yeh Kite jaisa empty search box ban jayega
+    # index=None lagane se box khali rahega aur Kite jaisa search feature milega
     symbol = st.selectbox(
         "Stock Search Karein", 
         options=popular_stocks,
-        index=None,  # Box ko default khali rakhne ke liye
-        placeholder="Type karein (jaise RELIANCE, TCS)..." # Khali box mein background text
+        index=None,
+        placeholder="Type karein (jaise RELIANCE, TCS)..."
     )
 with col_in2:
     exchange = st.selectbox("Exchange Chunein", ["NSE (.NS)", "BSE (.BO)"])
@@ -39,7 +44,7 @@ with col_in3:
     run_btn = st.button("Deep Analyze Karein", type="primary")
 
 if run_btn:
-    if symbol is None or symbol == "":  # Agar user ne bina search kiye button daba diya
+    if symbol is None or symbol == "":
         st.warning("Kripya pehle stock ka naam search karke select karein.")
     else:
         suffix = ".NS" if "NSE" in exchange else ".BO"
