@@ -12,7 +12,7 @@ st.markdown("Yeh app **Swing Trading** (Short-term momentum) aur **Long-Term Inv
 
 st.markdown("---")
 
-# Din mein ek baar NSE ki website se 2000+ stocks ki list fetch karke cache mein save karega
+# Din mein ek baar NSE ki website se 2000+ stocks ki list fetch karke cache karega
 @st.cache_data(ttl=86400) 
 def get_all_stocks():
     try:
@@ -22,15 +22,65 @@ def get_all_stocks():
         df = pd.read_csv(io.StringIO(response.text))
         return df['SYMBOL'].tolist()
     except Exception:
-        # Agar NSE ki site band ho, toh yeh backup list chalegi
         return ["RELIANCE", "TCS", "HDFCBANK", "INFY", "TVSMOTOR", "ZOMATO", "TATAMOTORS", "BAJFINANCE", "BEL"]
+
+# Aaj ke trending/active stocks scan karne ka function (Har 10 minute mein update hoga)
+@st.cache_data(ttl=600)
+def get_trending_stocks():
+    # Market ke sabse active aur popular stocks ki basket
+    active_watchlist = [
+        "TATAMOTORS", "BEL", "ZOMATO", "RELIANCE", "SBIN", "HDFCBANK", 
+        "BAJFINANCE", "TVSMOTOR", "ADANIENT", "ITC", "INFY", "TATASTEEL", 
+        "BHARTIARTL", "HAL", "BSE", "IRFC", "JIOFIN", "CUPID", "VEDL"
+    ]
+    tickers = [f"{s}.NS" for s in active_watchlist]
+    try:
+        data = yf.download(tickers, period="5d", group_by='ticker', progress=False)
+        results = []
+        for s in active_watchlist:
+            sym = f"{s}.NS"
+            try:
+                sub_df = data[sym].dropna()
+                if len(sub_df) >= 2:
+                    curr_price = float(sub_df['Close'].iloc[-1])
+                    prev_price = float(sub_df['Close'].iloc[-2])
+                    pct = ((curr_price - prev_price) / prev_price) * 100
+                    vol = float(sub_df['Volume'].iloc[-1])
+                    avg_vol = float(sub_df['Volume'].mean())
+                    
+                    vol_surge = "High Volume 🔥" if vol > avg_vol * 1.2 else "Normal ⚪"
+                    
+                    if pct > 1.5 and vol > avg_vol:
+                        signal = "Strong Bullish 🚀"
+                    elif pct > 0:
+                        signal = "Mild Positive 🟢"
+                    elif pct < -1.5:
+                        signal = "Selling Pressure 🔴"
+                    else:
+                        signal = "Consolidation ⚖️"
+
+                    results.append({
+                        "Stock": s,
+                        "Bhav (₹)": f"₹{curr_price:.2f}",
+                        "Badhat/Ghirawat (%)": round(pct, 2),
+                        "Volume Activity": vol_surge,
+                        "Momentum Signal": signal
+                    })
+            except Exception:
+                continue
+                
+        df_res = pd.DataFrame(results)
+        if not df_res.empty:
+            df_res = df_res.sort_values(by="Badhat/Ghirawat (%)", ascending=False)
+        return df_res
+    except Exception:
+        return pd.DataFrame()
 
 popular_stocks = get_all_stocks()
 
 # Main Page Inputs
 col_in1, col_in2, col_in3 = st.columns([2, 2, 1])
 with col_in1:
-    # index=None lagane se box khali rahega aur Kite jaisa search feature milega
     symbol = st.selectbox(
         "Stock Search Karein", 
         options=popular_stocks,
@@ -138,8 +188,13 @@ if run_btn:
 
                     macd_status = "Bullish 🟢" if latest_macd > latest_signal else "Bearish 🔴"
 
-                    # --- TABS ---
-                    tab1, tab2, tab3 = st.tabs(["🎯 Complete Saransh (Hindi)", "🚀 Powerful Swing Trading Guide", "💼 Expert Long-Term Analysis"])
+                    # --- TABS (NOW 4 TABS) ---
+                    tab1, tab2, tab3, tab4 = st.tabs([
+                        "🎯 Complete Saransh (Hindi)", 
+                        "🚀 Powerful Swing Trading Guide", 
+                        "💼 Expert Long-Term Analysis",
+                        "🔥 Aaj Ke Trending Stocks"
+                    ])
                     
                     with tab1:
                         st.subheader("🤖 Smart Combined Verdict & Actionable Advice (Hindi)")
@@ -244,7 +299,7 @@ if run_btn:
                             st.markdown(f"> **🎯 Target:** Stock pehle se hi resistance (₹{latest_bb_upper:.2f}) ke upar hai. Apne Stop-Loss ko trail karte rahein (Trail SL).")
 
                     with tab3:
-                        st.subheader("💼 Expert Long-Term Investment Analysis")
+                        st.subheader("💼 Expert Long-Term Analysis")
                         st.markdown("Lambe samay ke nivesh (5-10 saal) ke liye business ki asli taqat aur fundamentals yahan check karein:")
                         
                         pb_ratio = info.get('priceToBook', None)
@@ -318,6 +373,28 @@ if run_btn:
                             st.warning("**VERDICT: MODERATE / AVERAGE ⚖️**\nCompany theek-thaak hai, par kuch kamzoriyan (jaise karza ya mehangi valuation) hain. Nivesh se pehle dhyan dein ya portfolio ka sirf ek chota hissa hi lagayein.")
                         else:
                             st.error("**VERDICT: WEAK FUNDAMENTALS 🚫**\nLambe samay ke hisaab se is stock mein fundamental risk zyada hai. Ise avoid karna filhal behtar option rahega.")
+
+                    # ==========================================
+                    # TAB 4: AAJ KE TRENDING / ACTIVE STOCKS
+                    # ==========================================
+                    with tab4:
+                        st.subheader("🔥 Market Ke Aaj Ke Trending & Momentum Stocks")
+                        st.markdown("Yeh list market ke sabse active stocks ko live scan karke banayi gayi hai, jismein se aap trade ya nivesh ke liye study kar sakte hain:")
+                        
+                        trending_df = get_trending_stocks()
+                        
+                        if not trending_df.empty:
+                            st.dataframe(trending_df, use_container_width=True, hide_index=True)
+                            
+                            st.markdown("---")
+                            st.markdown("### 🎯 Inhe Kaise Study Karein (Smart Trading Guide):")
+                            st.markdown("""
+                            * **🚀 Swing Traders Ke Liye:** Jisme **High Volume 🔥** aur **Strong Bullish 🚀** signal dikh raha ho, un stocks ko search box mein daal kar unka 20-Day EMA aur RSI check karein. Breakout par choti quantity se trade setup banayein.
+                            * **💼 Long-Term Nivesh Ke Liye:** Agar koi mazboot company (jaise Tata Motors, Reliance, HDFC Bank) yahan consolidation ya halke dip par dikhe, toh use tab 3 ke fundamentals dekh kar SIP ke liye chun sakte hain.
+                            * **⚠️ Note:** Jo stock pehle se 5-6% se zyada bhag chuka ho, usme top par entry na lein; halke pullback ya retest ka intezaar karein.
+                            """)
+                        else:
+                            st.info("Market data load ho raha hai... Kripya kuch second baad refresh karein.")
 
             except Exception as e:
                 st.error("❌ Stock ka naam galat hai ya Yahoo Finance par data available nahi hai. Kripya sahi naam chunein.")
