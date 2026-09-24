@@ -11,20 +11,25 @@ st.markdown("Yeh app **Swing Trading** (Short-term momentum) aur **Long-Term Inv
 
 st.markdown("---")
 
-# Session state initialization for capital letters
-if 'stock_input' not in st.session_state:
-    st.session_state['stock_input'] = ""
-
-def convert_to_caps():
-    st.session_state['stock_input'] = st.session_state['stock_input'].upper().strip()
+# Saare popular stocks ki list (Kite/Upstox jaisa search feature dene ke liye)
+# Aap is list mein apne hisaab se aur stocks add kar sakte hain
+popular_stocks = [
+    "ADANIENT", "ASIANPAINT", "AXISBANK", "BAJAJ-AUTO", "BAJFINANCE", 
+    "BEL", "BHARTIARTL", "CUPID", "HCLTECH", "HDFCBANK", 
+    "HEROMOTOCO", "HINDUNILVR", "ICICIBANK", "INFY", "ITC", 
+    "KOTAKBANK", "LT", "M&M", "MARUTI", "NTPC", 
+    "POWERGRID", "RELIANCE", "SBIN", "SUNPHARMA", "TATAMOTORS", 
+    "TATASTEEL", "TCS", "TITAN", "TVSMOTOR", "ULTRACEMCO", 
+    "WIPRO", "ZOMATO"
+]
 
 # Main Page Inputs
 col_in1, col_in2, col_in3 = st.columns([2, 2, 1])
 with col_in1:
-    raw_symbol = st.text_input(
-        "Stock Ka Naam Daalein (jaise BEL, RELIANCE, TCS)", 
-        key='stock_input', 
-        on_change=convert_to_caps
+    # text_input ki jagah selectbox lagaya gaya hai jo type karne par auto-suggest karega
+    symbol = st.selectbox(
+        "Stock Ka Naam Chunein ya Type Karein", 
+        options=popular_stocks
     )
 with col_in2:
     exchange = st.selectbox("Exchange Chunein", ["NSE (.NS)", "BSE (.BO)"])
@@ -32,11 +37,9 @@ with col_in3:
     st.markdown("<br>", unsafe_allow_html=True)
     run_btn = st.button("Deep Analyze Karein", type="primary")
 
-symbol = st.session_state['stock_input']
-
 if run_btn:
     if not symbol:
-        st.warning("Kripya pehle stock ka naam daalein.")
+        st.warning("Kripya pehle stock ka naam chunein.")
     else:
         suffix = ".NS" if "NSE" in exchange else ".BO"
         ticker_symbol = symbol + suffix
@@ -51,7 +54,8 @@ if run_btn:
                 info = stock.info
                 
                 if df.empty or len(df) < 2:
-                    st.error(f"'{symbol}' ke liye price data nahi mila. Kripya symbol check karein.")
+                    # Agar data na mile toh custom Hindi error
+                    st.error(f"❌ '{symbol}' ka price data nahi mila. Kripya sahi naam chunein ya thodi der baad try karein.")
                 else:
                     if isinstance(df.columns, pd.MultiIndex):
                         df.columns = df.columns.get_level_values(0)
@@ -334,6 +338,7 @@ if run_btn:
                             st.error("**VERDICT: WEAK FUNDAMENTALS 🚫**\nLambe samay ke hisaab se is stock mein fundamental risk zyada hai. Ise avoid karna filhal behtar option rahega.")
 
             except Exception as e:
-                st.error(f"Koyi error aa gaya: {e}")
+                # Agar koi unexpected API ya 404 URL error aaye toh yeh custom message chalega
+                st.error("❌ Stock ka naam galat hai ya Yahoo Finance par data available nahi hai. Kripya sahi naam chunein.")
 else:
     st.info("Upar diye gaye box mein stock ka symbol daal kar **'Deep Analyze Karein'** button dabayein.")
